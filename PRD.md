@@ -44,8 +44,11 @@ The initial graph is built around:
 - The LAB / The DOCK
 - Superteam USA
 - OKX
+- Palma Labs
 - Rolograph MVP
 - Founding build team
+
+The event runs Thursday, August 6 from 4:00 PM to 11:30 PM at The DOCK, 400 NW 26th St, Miami. Check-in and team registration happen at `https://app.cursormiami.com`. The two locked deadlines are the 6:30 PM PRD and the 9:30 PM final submission; finalist demos begin at 10:00 PM and must be live products with no slides.
 
 Known uncertainty is part of the product. For example, Amy Street is represented as a host node needing live enrichment rather than being assigned an invented title.
 
@@ -65,6 +68,7 @@ The shipped demo must include:
 10. Recruitment layer with roles needed
 11. One-click or lightweight interest capture
 12. Presenter mode for a 60 to 90 second automatic demo
+13. Exact event run-of-show and platform check-in pathway
 
 ## Presenter Mode
 

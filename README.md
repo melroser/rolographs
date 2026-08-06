@@ -9,7 +9,8 @@ Rolograph is a kinetic recruitment demo for Cursor Miami Ship Night. It turns th
 - GSAP entrance and 75-second presenter timeline
 - Interactive SVG relationship graph with animated edges
 - Cursor-reactive field, scanlines, chromatic type, glitch transitions, and node burst effects
-- Cursor Miami event data for Ben Milshtein, QuickNode, Amy Street, Jen Stein, Tatenda Mahaka, The LAB, Superteam USA, OKX, Rob, and the Rolograph MVP
+- Official Cursor Miami schedule, live platform check-in, venue, deadline, team-matching, and partner data
+- Graph nodes for Ben Milshtein, QuickNode, Amy Street, Jen Stein, Tatenda Mahaka, The LAB, Superteam USA, OKX, Palma Labs, Rob, and the Rolograph MVP
 - Live interaction capture state that unlocks new relationship edges
 - Recruitment section with roles needed and a Netlify Forms interest capture
 

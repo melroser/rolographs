@@ -6,8 +6,11 @@ import {
   Activity,
   ArrowRight,
   BrainCircuit,
+  CalendarClock,
   CircleDotDashed,
+  ExternalLink,
   Mail,
+  MapPin,
   MousePointer2,
   Network,
   Play,
@@ -15,7 +18,6 @@ import {
   Sparkles,
   Square,
   UserPlus,
-  Zap,
 } from "lucide-react";
 
 type NodeKind = "person" | "org" | "event" | "artifact" | "team";
@@ -50,16 +52,16 @@ const nodes: GraphNode[] = [
   {
     id: "event",
     label: "Cursor Miami Ship Night",
-    kicker: "Tonight",
-    role: "Event core: 4:00 PM to 11:30 PM at The DOCK",
+    kicker: "Live // Aug 6",
+    role: "4:00 PM to 11:30 PM at The DOCK, 400 NW 26th St, Miami",
     kind: "event",
     x: 50,
     y: 49,
     priority: 100,
     confidence: "High",
     summary:
-      "The room is optimized for shipping live, not casual networking. The strongest social proof is a working demo with visible graph intelligence.",
-    opener: "Show the map, then ask what would make it useful enough for the next Cursor Miami event.",
+      "Check in at app.cursormiami.com, register the team, lock the PRD by 6:30, and submit the live product by 9:30. Solo builders can use the platform to find teammates in the room.",
+    opener: "Show the live map, then ask who is still looking for a team and should be pulled into the build.",
     desiredEdge: "Rob -> Cursor Miami: builder who ships under pressure",
     tags: ["PRD lock", "9:30 submission", "3 minute demos"],
   },
@@ -90,7 +92,7 @@ const nodes: GraphNode[] = [
     priority: 96,
     confidence: "High",
     summary:
-      "The organizer node. A strong conversation with Ben can anchor Rob inside the Miami Cursor builder graph.",
+      "The organizer node. Ben is directing check-in, team registration, solo-builder matching, and the two hard deadlines. A strong conversation anchors Rob inside the Miami Cursor builder graph.",
     opener: "What's the most interesting thing you've seen somebody attempt so far tonight?",
     desiredEdge: "Rob -> Ben: technical peer building with agents",
     tags: ["Cursor", "AI coding", "host"],
@@ -208,6 +210,22 @@ const nodes: GraphNode[] = [
     tags: ["wallet", "developer relations", "partner"],
   },
   {
+    id: "palma",
+    label: "Palma Labs",
+    kicker: "Studio",
+    role: "Miami builder studio and Ship Night partner",
+    kind: "org",
+    x: 70,
+    y: 88,
+    priority: 75,
+    confidence: "High",
+    summary:
+      "Palma Labs is part of the event's persistent local builder layer: put Miami builders in one room, give them a deadline, and create a reason to stay connected afterward.",
+    opener: "What would make this useful as the relationship layer across every room Palma runs?",
+    desiredEdge: "Rob -> Palma Labs: repeat event intelligence pilot",
+    tags: ["studio", "Miami", "partner"],
+  },
+  {
     id: "product",
     label: "Rolograph MVP",
     kicker: "Ship",
@@ -253,6 +271,8 @@ const edges: GraphEdge[] = [
   { id: "quicknode-team", source: "quicknode", target: "team", label: "infra talent", weight: 3 },
   { id: "jen-okx", source: "jen", target: "okx", label: "BD", weight: 4 },
   { id: "okx-event", source: "okx", target: "event", label: "partner", weight: 3 },
+  { id: "event-palma", source: "event", target: "palma", label: "studio partner", weight: 3 },
+  { id: "palma-lab", source: "palma", target: "lab", label: "Miami builders", weight: 3 },
   { id: "tatenda-lab", source: "tatenda", target: "lab", label: "community", weight: 3 },
   { id: "rob-ben", source: "rob", target: "ben", label: "captured interaction", weight: 5, unlocksAfterCapture: true },
   { id: "rob-quicknode", source: "rob", target: "quicknode", label: "technical follow-up", weight: 4, unlocksAfterCapture: true },
@@ -274,6 +294,16 @@ const metrics = [
   { label: "Hard deadline", value: "9:30", detail: "final product submission" },
   { label: "Pitch format", value: "3m", detail: "live demo, no slides" },
   { label: "Prize", value: "$10K", detail: "one team takes it" },
+];
+
+const schedule = [
+  { time: "4:00", label: "Doors + platform check-in", tone: "cyan" },
+  { time: "4:30", label: "Tutorials + onboarding", tone: "cyan" },
+  { time: "5:00", label: "Kickoff", tone: "pink" },
+  { time: "6:30", label: "PRD locked", tone: "acid" },
+  { time: "9:30", label: "Final submission", tone: "acid" },
+  { time: "10:00", label: "Finalists + live demos", tone: "pink" },
+  { time: "10:30", label: "Winner", tone: "volt" },
 ];
 
 const roles = [
@@ -540,6 +570,14 @@ export default function Home() {
             <p className="text-sm leading-6 text-white/72">
               Do not tell the room you are forming a team. Make the room watch the team-forming machine run.
             </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <a className="signal-link" href="https://app.cursormiami.com" rel="noreferrer" target="_blank">
+                <ExternalLink size={14} /> Live check-in
+              </a>
+              <span className="signal-link text-white/68">
+                <MapPin size={14} /> The DOCK // Wynwood
+              </span>
+            </div>
           </div>
         </section>
 
@@ -718,6 +756,22 @@ export default function Home() {
           </div>
         </aside>
       </div>
+
+      <section className="event-clock" aria-label="Cursor Miami Ship Night schedule">
+        <div className="event-clock-heading">
+          <CalendarClock size={19} />
+          <span>Hard clocks</span>
+          <span className="font-mono text-[0.66rem] text-white/52">Thursday, August 6 // live products only</span>
+        </div>
+        <div className="event-clock-track">
+          {schedule.map((item) => (
+            <div className={`clock-stop tone-${item.tone}`} key={`${item.time}-${item.label}`}>
+              <span className="clock-time">{item.time}</span>
+              <span className="clock-label">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="px-4 pb-6" id="join-build">
         <div className="chrome-panel mx-auto grid max-w-[1440px] gap-6 p-5 md:grid-cols-[1fr_0.85fr] md:p-7">
