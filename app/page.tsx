@@ -1,0 +1,823 @@
+"use client";
+
+import { FormEvent, PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from "react";
+import gsap from "gsap";
+import {
+  Activity,
+  ArrowRight,
+  BrainCircuit,
+  CircleDotDashed,
+  Mail,
+  MousePointer2,
+  Network,
+  Play,
+  RadioTower,
+  Sparkles,
+  Square,
+  UserPlus,
+  Zap,
+} from "lucide-react";
+
+type NodeKind = "person" | "org" | "event" | "artifact" | "team";
+type Confidence = "High" | "Medium" | "Observed";
+
+type GraphNode = {
+  id: string;
+  label: string;
+  kicker: string;
+  role: string;
+  kind: NodeKind;
+  x: number;
+  y: number;
+  priority: number;
+  confidence: Confidence;
+  summary: string;
+  opener: string;
+  desiredEdge: string;
+  tags: string[];
+};
+
+type GraphEdge = {
+  id: string;
+  source: string;
+  target: string;
+  label: string;
+  weight: number;
+  unlocksAfterCapture?: boolean;
+};
+
+const nodes: GraphNode[] = [
+  {
+    id: "event",
+    label: "Cursor Miami Ship Night",
+    kicker: "Tonight",
+    role: "Event core: 4:00 PM to 11:30 PM at The DOCK",
+    kind: "event",
+    x: 50,
+    y: 49,
+    priority: 100,
+    confidence: "High",
+    summary:
+      "The room is optimized for shipping live, not casual networking. The strongest social proof is a working demo with visible graph intelligence.",
+    opener: "Show the map, then ask what would make it useful enough for the next Cursor Miami event.",
+    desiredEdge: "Rob -> Cursor Miami: builder who ships under pressure",
+    tags: ["PRD lock", "9:30 submission", "3 minute demos"],
+  },
+  {
+    id: "rob",
+    label: "Rob",
+    kicker: "Builder",
+    role: "Founder/operator recruiting a team through the demo itself",
+    kind: "team",
+    x: 22,
+    y: 48,
+    priority: 98,
+    confidence: "High",
+    summary:
+      "The graph makes Rob legible as the person coordinating product, story, and technical execution in real time.",
+    opener: "I am using tonight to prove the team thesis: ship the graph, recruit from the graph, improve the graph.",
+    desiredEdge: "Rob -> cracked programmers: founding build team",
+    tags: ["founder", "demo owner", "recruiting"],
+  },
+  {
+    id: "ben",
+    label: "Ben Milshtein",
+    kicker: "Priority 1",
+    role: "Cursor Miami host and Cursor ecosystem connector",
+    kind: "person",
+    x: 48,
+    y: 18,
+    priority: 96,
+    confidence: "High",
+    summary:
+      "The organizer node. A strong conversation with Ben can anchor Rob inside the Miami Cursor builder graph.",
+    opener: "What's the most interesting thing you've seen somebody attempt so far tonight?",
+    desiredEdge: "Rob -> Ben: technical peer building with agents",
+    tags: ["Cursor", "AI coding", "host"],
+  },
+  {
+    id: "quicknode",
+    label: "QuickNode",
+    kicker: "Sponsor",
+    role: "Infrastructure sponsor and likely technical recruiting path",
+    kind: "org",
+    x: 78,
+    y: 31,
+    priority: 91,
+    confidence: "High",
+    summary:
+      "A clean technical lane for backend, infra, agents, wallets, and data flows without pretending to be a crypto maximalist.",
+    opener: "Where are you seeing agents intersect with infrastructure tonight?",
+    desiredEdge: "Rob -> QuickNode engineer: technical contact",
+    tags: ["infra", "APIs", "sponsor"],
+  },
+  {
+    id: "amy",
+    label: "Amy Street",
+    kicker: "Host",
+    role: "Host node with identity intentionally left for live enrichment",
+    kind: "person",
+    x: 31,
+    y: 24,
+    priority: 76,
+    confidence: "Observed",
+    summary:
+      "Useful because she is attached to the event graph. Rolograph keeps uncertainty visible instead of hallucinating a title.",
+    opener: "What role are you playing in tonight's build ecosystem?",
+    desiredEdge: "Rob -> Amy: verified host relationship after live context",
+    tags: ["host", "needs enrichment", "local graph"],
+  },
+  {
+    id: "jen",
+    label: "Jen Stein",
+    kicker: "OKX",
+    role: "BD @ OKX and partner-side event node",
+    kind: "person",
+    x: 70,
+    y: 64,
+    priority: 73,
+    confidence: "High",
+    summary:
+      "Business development and partner signal. Useful if the demo crosses wallets, developer APIs, or event sponsorship workflows.",
+    opener: "What kind of projects are you hoping people actually build with OKX tonight?",
+    desiredEdge: "Rob -> Jen: partner-aware product conversation",
+    tags: ["OKX", "BD", "partner"],
+  },
+  {
+    id: "tatenda",
+    label: "Tatenda Mahaka",
+    kicker: "Miami EdTech",
+    role: "Program manager and local CS education connector",
+    kind: "person",
+    x: 24,
+    y: 73,
+    priority: 82,
+    confidence: "High",
+    summary:
+      "A community connector for AI coding education, interviewing, and how people learn to build with agentic tools.",
+    opener: "What should AI coding education feel like when the learner can ship on day one?",
+    desiredEdge: "Rob -> Tatenda: education and local community bridge",
+    tags: ["education", "Miami", "community"],
+  },
+  {
+    id: "lab",
+    label: "The LAB / The DOCK",
+    kicker: "Venue",
+    role: "Miami startup hub and persistent builder graph",
+    kind: "org",
+    x: 47,
+    y: 82,
+    priority: 86,
+    confidence: "High",
+    summary:
+      "The persistent local network underneath the event. Winning the room matters; staying in this graph matters more.",
+    opener: "Who in this building should see a relationship intelligence tool for live events?",
+    desiredEdge: "Rob -> The LAB: recurring Miami founder access",
+    tags: ["venue", "founders", "Miami"],
+  },
+  {
+    id: "superteam",
+    label: "Superteam USA",
+    kicker: "Prize",
+    role: "$10K one-team prize sponsor",
+    kind: "org",
+    x: 58,
+    y: 9,
+    priority: 68,
+    confidence: "High",
+    summary:
+      "Prize sponsor and potential crypto ecosystem bridge. Relevant because the demo rewards shipping and team formation.",
+    opener: "What would make a non-crypto relationship graph useful to Superteam builders?",
+    desiredEdge: "Rob -> Superteam: prize-room product feedback",
+    tags: ["sponsor", "prize", "builders"],
+  },
+  {
+    id: "okx",
+    label: "OKX",
+    kicker: "Partner",
+    role: "Fintech, wallet, marketplace, and infrastructure partner",
+    kind: "org",
+    x: 87,
+    y: 72,
+    priority: 63,
+    confidence: "High",
+    summary:
+      "Useful if Rolograph becomes a sponsor intelligence layer for events, APIs, and developer relations.",
+    opener: "How do you decide which event builders are worth follow-up after a ship night?",
+    desiredEdge: "Rob -> OKX: sponsor analytics conversation",
+    tags: ["wallet", "developer relations", "partner"],
+  },
+  {
+    id: "product",
+    label: "Rolograph MVP",
+    kicker: "Ship",
+    role: "Event -> graph -> interaction capture -> follow-up engine",
+    kind: "artifact",
+    x: 52,
+    y: 63,
+    priority: 99,
+    confidence: "High",
+    summary:
+      "A demo that makes the social graph visible, editable, and recruitable while the event is still happening.",
+    opener: "Click a node, capture a conversation, watch the graph rewrite the next move.",
+    desiredEdge: "Product -> team: visible proof that the idea deserves builders",
+    tags: ["GSAP", "graph UX", "follow-ups"],
+  },
+  {
+    id: "team",
+    label: "Founding Build Team",
+    kicker: "Recruit",
+    role: "AI product engineers, graph UI freaks, data people, event operators",
+    kind: "team",
+    x: 82,
+    y: 50,
+    priority: 97,
+    confidence: "High",
+    summary:
+      "The ask is direct: join the team that turns high-value rooms into living maps before the opportunity disappears.",
+    opener: "If this made you want to touch the code, join the build tonight.",
+    desiredEdge: "Programmer -> Rob: commits, taste, velocity",
+    tags: ["join", "ship", "founding team"],
+  },
+];
+
+const edges: GraphEdge[] = [
+  { id: "event-ben", source: "event", target: "ben", label: "host", weight: 5 },
+  { id: "event-amy", source: "event", target: "amy", label: "host", weight: 3 },
+  { id: "event-quicknode", source: "event", target: "quicknode", label: "sponsor", weight: 5 },
+  { id: "event-superteam", source: "event", target: "superteam", label: "prize", weight: 4 },
+  { id: "event-lab", source: "event", target: "lab", label: "venue", weight: 4 },
+  { id: "event-product", source: "event", target: "product", label: "demo target", weight: 5 },
+  { id: "product-rob", source: "product", target: "rob", label: "owner", weight: 5 },
+  { id: "product-team", source: "product", target: "team", label: "recruits", weight: 5 },
+  { id: "quicknode-team", source: "quicknode", target: "team", label: "infra talent", weight: 3 },
+  { id: "jen-okx", source: "jen", target: "okx", label: "BD", weight: 4 },
+  { id: "okx-event", source: "okx", target: "event", label: "partner", weight: 3 },
+  { id: "tatenda-lab", source: "tatenda", target: "lab", label: "community", weight: 3 },
+  { id: "rob-ben", source: "rob", target: "ben", label: "captured interaction", weight: 5, unlocksAfterCapture: true },
+  { id: "rob-quicknode", source: "rob", target: "quicknode", label: "technical follow-up", weight: 4, unlocksAfterCapture: true },
+  { id: "rob-team", source: "rob", target: "team", label: "recruitment signal", weight: 5, unlocksAfterCapture: true },
+  { id: "rob-tatenda", source: "rob", target: "tatenda", label: "education bridge", weight: 3, unlocksAfterCapture: true },
+];
+
+const presenterSteps = [
+  "Booting event graph",
+  "Priority organizer node",
+  "Sponsor infrastructure lane",
+  "Capturing live interaction",
+  "Graph rewiring follow-ups",
+  "Recruiting the build team",
+];
+
+const metrics = [
+  { label: "Demo window", value: "75s", detail: "auto presenter mode" },
+  { label: "Hard deadline", value: "9:30", detail: "final product submission" },
+  { label: "Pitch format", value: "3m", detail: "live demo, no slides" },
+  { label: "Prize", value: "$10K", detail: "one team takes it" },
+];
+
+const roles = [
+  {
+    title: "AI Product Engineer",
+    detail: "Turn messy event context into agents, summaries, rankings, and fast UX primitives.",
+  },
+  {
+    title: "Graph Systems Builder",
+    detail: "Own entity resolution, edge confidence, data provenance, and real-time graph state.",
+  },
+  {
+    title: "Motion / UI Killer",
+    detail: "Make intelligence feel alive without burying the signal under expensive animation.",
+  },
+  {
+    title: "Event Operator",
+    detail: "Run rooms, collect feedback, chase intros, and convert the graph into actual outcomes.",
+  },
+];
+
+const buildStack = ["Next.js App Router", "TypeScript", "Tailwind CSS", "GSAP timeline", "SVG graph engine", "Netlify Forms"];
+
+function getNode(id: string) {
+  const node = nodes.find((item) => item.id === id);
+  if (!node) {
+    throw new Error(`Missing graph node: ${id}`);
+  }
+  return node;
+}
+
+function toUrlEncoded(formData: FormData) {
+  return new URLSearchParams(
+    Array.from(formData.entries()).map(([key, value]) => [key, String(value)]),
+  ).toString();
+}
+
+export default function Home() {
+  const [selectedId, setSelectedId] = useState("event");
+  const [interactionCaptured, setInteractionCaptured] = useState(false);
+  const [demoActive, setDemoActive] = useState(false);
+  const [demoStep, setDemoStep] = useState(presenterSteps[0]);
+  const [joinStatus, setJoinStatus] = useState<"idle" | "sending" | "captured" | "local">("idle");
+  const shellRef = useRef<HTMLElement | null>(null);
+  const graphRef = useRef<HTMLDivElement | null>(null);
+  const timelineRef = useRef<gsap.core.Timeline | null>(null);
+
+  const selected = useMemo(() => getNode(selectedId), [selectedId]);
+
+  const connectedIds = useMemo(() => {
+    const ids = new Set<string>([selectedId]);
+    edges.forEach((edge) => {
+      if (edge.source === selectedId) ids.add(edge.target);
+      if (edge.target === selectedId) ids.add(edge.source);
+    });
+    return ids;
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      gsap.from(".hero-line", {
+        y: 34,
+        opacity: 0,
+        duration: 0.9,
+        ease: "power3.out",
+        stagger: 0.08,
+      });
+      gsap.from(".graph-node", {
+        scale: 0.2,
+        opacity: 0,
+        duration: 0.82,
+        ease: "back.out(2.4)",
+        stagger: 0.028,
+        delay: 0.2,
+      });
+      gsap.to(".graph-node", {
+        y: "random(-5, 5)",
+        x: "random(-4, 4)",
+        duration: "random(2.5, 4.6)",
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        stagger: 0.06,
+      });
+      gsap.from(".metric-tile", {
+        x: -18,
+        opacity: 0,
+        duration: 0.7,
+        ease: "power2.out",
+        stagger: 0.08,
+        delay: 0.42,
+      });
+    }, shellRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      timelineRef.current?.kill();
+    };
+  }, []);
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    const x = `${Math.round((event.clientX / window.innerWidth) * 100)}%`;
+    const y = `${Math.round((event.clientY / window.innerHeight) * 100)}%`;
+    document.documentElement.style.setProperty("--cursor-x", x);
+    document.documentElement.style.setProperty("--cursor-y", y);
+  };
+
+  const stopPresenter = () => {
+    timelineRef.current?.kill();
+    timelineRef.current = null;
+    setDemoActive(false);
+    setDemoStep("Manual control");
+    if (graphRef.current) {
+      gsap.to(graphRef.current, { scale: 1, x: 0, y: 0, duration: 0.45, ease: "power2.out" });
+    }
+    gsap.set(".demo-progress-fill", { width: "0%" });
+  };
+
+  const startPresenter = () => {
+    timelineRef.current?.kill();
+    setDemoActive(true);
+    setInteractionCaptured(false);
+    setSelectedId("event");
+
+    const tl = gsap.timeline({
+      defaults: { ease: "power3.inOut" },
+      onComplete: () => {
+        setDemoActive(false);
+        setDemoStep("Recruitment pitch live");
+      },
+    });
+
+    timelineRef.current = tl;
+    gsap.set(".demo-progress-fill", { width: "0%" });
+    tl.to(".demo-progress-fill", { width: "100%", duration: 75, ease: "none" }, 0);
+
+    const move = (nodeId: string, step: string, transform: { scale: number; x: number; y: number }, hold: number) => {
+      tl.call(() => {
+        setSelectedId(nodeId);
+        setDemoStep(step);
+      });
+      tl.to(graphRef.current, { ...transform, duration: 2.3 }, "<");
+      tl.to(".graph-canvas", { filter: "saturate(150%) contrast(112%)", duration: 0.38 }, "<");
+      tl.to(".graph-canvas", { filter: "saturate(100%) contrast(100%)", duration: 0.55 });
+      tl.to({}, { duration: hold });
+    };
+
+    move("event", presenterSteps[0], { scale: 1, x: 0, y: 0 }, 7);
+    move("ben", presenterSteps[1], { scale: 1.2, x: 64, y: 82 }, 10);
+    move("quicknode", presenterSteps[2], { scale: 1.16, x: -92, y: 44 }, 10);
+
+    tl.call(() => {
+      setSelectedId("rob");
+      setDemoStep(presenterSteps[3]);
+    });
+    tl.to(graphRef.current, { scale: 1.1, x: 76, y: 0, duration: 2.1 });
+    tl.to({}, { duration: 5 });
+    tl.call(() => setInteractionCaptured(true));
+    tl.to(".capture-flash", { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" });
+    tl.to(".capture-flash", { opacity: 0, scale: 1.24, duration: 1.15, ease: "power2.out" });
+    tl.to({}, { duration: 7 });
+
+    move("product", presenterSteps[4], { scale: 1.12, x: -8, y: -42 }, 11);
+    move("team", presenterSteps[5], { scale: 1.18, x: -118, y: 4 }, 12);
+    tl.to(graphRef.current, { scale: 1, x: 0, y: 0, duration: 2.4 });
+    tl.call(() => setSelectedId("team"));
+  };
+
+  const handleNodeClick = (id: string) => {
+    if (demoActive) stopPresenter();
+    setSelectedId(id);
+  };
+
+  const handleCapture = () => {
+    setInteractionCaptured(true);
+    setSelectedId("product");
+    gsap.fromTo(
+      ".capture-flash",
+      { opacity: 0, scale: 0.82 },
+      { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)", yoyo: true, repeat: 1 },
+    );
+  };
+
+  const handleJoinSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setJoinStatus("sending");
+
+    try {
+      const response = await fetch("/__forms.html", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: toUrlEncoded(new FormData(event.currentTarget)),
+      });
+
+      setJoinStatus(response.ok ? "captured" : "local");
+      if (response.ok) {
+        event.currentTarget.reset();
+      }
+    } catch {
+      setJoinStatus("local");
+    }
+  };
+
+  return (
+    <main className="app-shell" ref={shellRef} onPointerMove={handlePointerMove}>
+      <div className="cursor-reactor" />
+      <div className="noise-field" />
+      <div className="scanline-field" />
+
+      <div className="layout-grid">
+        <section className="chrome-panel flex min-h-[calc(100vh-2rem)] flex-col justify-between p-5 md:p-6">
+          <div>
+            <div className="hero-line mb-5 inline-flex items-center gap-2 border border-white/15 bg-white/[0.06] px-3 py-2 font-mono text-xs uppercase text-white/75">
+              <RadioTower size={15} />
+              Cursor Miami Ship Night // live event intelligence
+            </div>
+
+            <h1 className="hero-line hyper-title text-[clamp(3.1rem,7.2vw,7rem)]" data-text="Rolograph">
+              Rolograph
+            </h1>
+
+            <p className="hero-line mt-5 max-w-xl text-xl font-black uppercase leading-tight text-white md:text-2xl">
+              A room-scale relationship graph that makes the best programmers want to join Rob&apos;s team.
+            </p>
+
+            <p className="hero-line mt-4 max-w-xl text-sm leading-6 text-white/70">
+              Built for tonight: identify the power nodes, capture live conversations, rewrite the follow-up graph, and end the demo with a direct recruitment ask.
+            </p>
+
+            <div className="hero-line mt-6 flex flex-wrap gap-3">
+              <button className="neon-button" type="button" onClick={startPresenter} aria-label="Run presenter mode">
+                <Play size={18} />
+                Run 75s Demo
+              </button>
+              <a className="ghost-button" href="#join-build">
+                <UserPlus size={18} />
+                Join Build
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-8 grid grid-cols-2 gap-3">
+            {metrics.map((metric) => (
+              <div className="metric-tile p-3" key={metric.label}>
+                <div className="font-display text-2xl uppercase text-acid">{metric.value}</div>
+                <div className="mt-1 text-xs font-black uppercase text-white">{metric.label}</div>
+                <div className="mt-1 text-xs text-white/56">{metric.detail}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hero-line mt-6 border border-white/15 bg-black/20 p-4">
+            <div className="mb-2 flex items-center gap-2 text-sm font-black uppercase text-cyanpop">
+              <BrainCircuit size={17} />
+              Demo Thesis
+            </div>
+            <p className="text-sm leading-6 text-white/72">
+              Do not tell the room you are forming a team. Make the room watch the team-forming machine run.
+            </p>
+          </div>
+        </section>
+
+        <section className="chrome-panel graph-stage">
+          <div className="ticker">
+            <div className="ticker-track">
+              {Array.from({ length: 2 }).map((_, index) => (
+                <span key={index} className="flex gap-5">
+                  <span className="marquee-word">ship</span>
+                  <span>graph the room</span>
+                  <span className="marquee-word">capture edge</span>
+                  <span>recruit builders</span>
+                  <span className="marquee-word">zoom node</span>
+                  <span>submit before 9:30</span>
+                  <span>no slides</span>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="graph-canvas" aria-label="Interactive Rolograph relationship graph">
+            <div className="capture-flash pointer-events-none absolute left-1/2 top-1/2 z-10 grid h-44 w-44 -translate-x-1/2 -translate-y-1/2 place-items-center border border-acid/70 bg-acid/15 text-center font-display text-xl uppercase text-acid opacity-0 shadow-hyper">
+              Edge Captured
+            </div>
+
+            <div className="graph-map" ref={graphRef}>
+              <svg className="edge-layer" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="hot-flow" x1="0%" x2="100%" y1="0%" y2="100%">
+                    <stop offset="0%" stopColor="#ff2bd6" />
+                    <stop offset="48%" stopColor="#20f6ff" />
+                    <stop offset="100%" stopColor="#d7ff2f" />
+                  </linearGradient>
+                  <linearGradient id="acid-flow" x1="100%" x2="0%" y1="0%" y2="100%">
+                    <stop offset="0%" stopColor="#fff34a" />
+                    <stop offset="55%" stopColor="#d7ff2f" />
+                    <stop offset="100%" stopColor="#ff2bd6" />
+                  </linearGradient>
+                </defs>
+                {edges.map((edge) => {
+                  const source = getNode(edge.source);
+                  const target = getNode(edge.target);
+                  const isHot = selectedId === edge.source || selectedId === edge.target;
+                  const isUnlocked = Boolean(edge.unlocksAfterCapture && interactionCaptured);
+
+                  return (
+                    <line
+                      className={`graph-edge ${isHot ? "is-hot" : ""} ${isUnlocked ? "is-unlocked" : ""}`}
+                      key={edge.id}
+                      x1={source.x}
+                      x2={target.x}
+                      y1={source.y}
+                      y2={target.y}
+                      opacity={isUnlocked || !edge.unlocksAfterCapture ? 0.95 : 0.18}
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  );
+                })}
+              </svg>
+
+              {nodes.map((node) => {
+                const isSelected = selectedId === node.id;
+                const isConnected = connectedIds.has(node.id);
+
+                return (
+                  <button
+                    className={`graph-node kind-${node.kind} ${isSelected ? "is-selected" : ""}`}
+                    key={node.id}
+                    onClick={() => handleNodeClick(node.id)}
+                    style={{
+                      left: `${node.x}%`,
+                      top: `${node.y}%`,
+                      opacity: isConnected || selectedId === "event" ? 1 : 0.58,
+                    }}
+                    type="button"
+                    aria-pressed={isSelected}
+                    aria-label={`Open ${node.label}`}
+                  >
+                    <span className="node-chip">{node.label.slice(0, 2)}</span>
+                    <span>
+                      <span className="node-label">{node.label}</span>
+                      <span className="node-meta">{node.kicker}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="border-t border-white/15 bg-black/30 p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="font-mono text-xs uppercase text-white/54">Presenter Mode</div>
+                <div className="glitch-cut text-sm font-black uppercase text-white">{demoStep}</div>
+              </div>
+              <button className="ghost-button min-h-10 px-3 py-2 text-xs" type="button" onClick={demoActive ? stopPresenter : startPresenter}>
+                {demoActive ? <Square size={15} /> : <Play size={15} />}
+                {demoActive ? "Stop" : "Start"}
+              </button>
+            </div>
+            <div className="demo-bar">
+              <div className="demo-progress-fill" />
+            </div>
+          </div>
+        </section>
+
+        <aside className="chrome-panel flex min-h-[calc(100vh-2rem)] flex-col p-5 md:p-6">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <div className="font-mono text-xs uppercase text-white/54">Selected Node</div>
+              <h2 className="mt-1 text-3xl font-black uppercase leading-none text-white">{selected.label}</h2>
+            </div>
+            <div className="grid h-14 w-14 place-items-center border border-white/20 bg-white/10 text-acid">
+              <Network size={28} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="signal-tile p-3">
+              <div className="font-mono text-xs uppercase text-white/50">Priority</div>
+              <div className="mt-1 font-display text-3xl text-acid">{selected.priority}</div>
+            </div>
+            <div className="signal-tile p-3">
+              <div className="font-mono text-xs uppercase text-white/50">Confidence</div>
+              <div className="mt-2 text-sm font-black uppercase text-cyanpop">{selected.confidence}</div>
+            </div>
+          </div>
+
+          <div className="mt-4 border border-white/15 bg-black/20 p-4">
+            <div className="mb-2 text-xs font-black uppercase text-hotpink">Role</div>
+            <p className="text-sm leading-6 text-white/74">{selected.role}</p>
+          </div>
+
+          <div className="mt-4 border border-white/15 bg-black/20 p-4">
+            <div className="mb-2 text-xs font-black uppercase text-acid">Why it matters</div>
+            <p className="text-sm leading-6 text-white/74">{selected.summary}</p>
+          </div>
+
+          <div className="mt-4 border border-white/15 bg-black/20 p-4">
+            <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase text-cyanpop">
+              <MousePointer2 size={14} />
+              Live Opener
+            </div>
+            <p className="text-sm leading-6 text-white/84">&quot;{selected.opener}&quot;</p>
+          </div>
+
+          <div className="mt-4 border border-white/15 bg-black/20 p-4">
+            <div className="mb-2 text-xs font-black uppercase text-white/60">Desired Edge</div>
+            <p className="font-mono text-xs leading-5 text-white/74">{selected.desiredEdge}</p>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {selected.tags.map((tag) => (
+              <span className="border border-white/15 bg-white/[0.06] px-2.5 py-1 font-mono text-[0.68rem] uppercase text-white/70" key={tag}>
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-auto pt-6">
+            <button className="neon-button w-full" type="button" onClick={handleCapture}>
+              <CircleDotDashed size={18} />
+              Record Interaction
+            </button>
+            <div className="mt-3 border border-white/15 bg-black/20 p-4">
+              <div className="flex items-center gap-2 text-xs font-black uppercase text-acid">
+                <Activity size={14} />
+                {interactionCaptured ? "Live note captured" : "Ready for live note"}
+              </div>
+              <p className="mt-2 text-xs leading-5 text-white/64">
+                {interactionCaptured
+                  ? "Rob showed the graph, logged the conversation, unlocked follow-up edges to Ben, QuickNode, Tatenda, and the build team."
+                  : "Click record during the demo to show the graph mutating from researched context into verified relationship history."}
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <section className="px-4 pb-6" id="join-build">
+        <div className="chrome-panel mx-auto grid max-w-[1440px] gap-6 p-5 md:grid-cols-[1fr_0.85fr] md:p-7">
+          <div>
+            <div className="mb-3 inline-flex items-center gap-2 border border-hotpink/40 bg-hotpink/10 px-3 py-2 text-xs font-black uppercase text-hotpink">
+              <Sparkles size={15} />
+              Recruitment Layer
+            </div>
+            <h2 className="max-w-4xl font-display text-[clamp(2.2rem,5.4vw,5.8rem)] uppercase leading-[0.86] text-white">
+              Join the team turning rooms into living graphs.
+            </h2>
+            <p className="mt-5 max-w-3xl text-base leading-7 text-white/70">
+              Rolograph is a demo for tonight, but the bigger product is obvious: event intelligence that knows who matters, why they matter, what happened, and what to do next.
+            </p>
+
+            <div className="mt-6 grid gap-3 md:grid-cols-2">
+              {roles.map((role) => (
+                <div className="role-tile p-4" key={role.title}>
+                  <div className="text-sm font-black uppercase text-acid">{role.title}</div>
+                  <p className="mt-2 text-sm leading-6 text-white/64">{role.detail}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              {buildStack.map((item) => (
+                <span className="border border-cyanpop/30 bg-cyanpop/10 px-3 py-1.5 font-mono text-xs uppercase text-cyanpop" key={item}>
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <form
+            className="border border-white/15 bg-black/28 p-4 md:p-5"
+            data-netlify="true"
+            name="join-interest"
+            netlify-honeypot="bot-field"
+            onSubmit={handleJoinSubmit}
+          >
+            <input type="hidden" name="form-name" value="join-interest" />
+            <p className="hidden">
+              <label>
+                Do not fill this out: <input name="bot-field" />
+              </label>
+            </p>
+            <input type="hidden" name="signal" value="Cursor Miami Ship Night recruitment demo" />
+
+            <div className="mb-4">
+              <div className="font-mono text-xs uppercase text-white/54">One-click Interest Capture</div>
+              <h3 className="mt-1 text-2xl font-black uppercase text-white">Tell Rob you want in.</h3>
+            </div>
+
+            <label className="mb-3 block text-xs font-black uppercase text-white/62" htmlFor="name">
+              Name
+            </label>
+            <input className="field-input mb-4" id="name" name="name" placeholder="Your name" required />
+
+            <label className="mb-3 block text-xs font-black uppercase text-white/62" htmlFor="email">
+              Email or best contact
+            </label>
+            <input className="field-input mb-4" id="email" name="email" placeholder="you@wherever.dev" required />
+
+            <label className="mb-3 block text-xs font-black uppercase text-white/62" htmlFor="role">
+              Build lane
+            </label>
+            <select className="field-input mb-4" id="role" name="role" defaultValue="AI Product Engineer">
+              <option>AI Product Engineer</option>
+              <option>Graph Systems Builder</option>
+              <option>Motion / UI Killer</option>
+              <option>Event Operator</option>
+              <option>Tell me where I fit</option>
+            </select>
+
+            <label className="mb-3 block text-xs font-black uppercase text-white/62" htmlFor="message">
+              Signal
+            </label>
+            <textarea
+              className="field-input mb-4 min-h-28 resize-y"
+              id="message"
+              name="message"
+              defaultValue="I saw the Cursor Miami Rolograph demo and want to help build the next version."
+            />
+
+            <button className="neon-button w-full" disabled={joinStatus === "sending"} type="submit">
+              <Mail size={18} />
+              {joinStatus === "sending" ? "Sending" : "Send Join Signal"}
+            </button>
+
+            <div className="mt-4 border border-white/15 bg-white/[0.05] p-3 text-sm leading-6 text-white/68">
+              {joinStatus === "captured" && "Captured. Netlify will store the submission after deploy, and the local demo already moved the room toward team formation."}
+              {joinStatus === "local" && "Signal staged locally. If Netlify Forms is not active yet, use the GitHub repo or find Rob in the room."}
+              {joinStatus === "idle" && "On Netlify, this form records interest without a backend. In-room, it also gives Rob a clean closing CTA."}
+              <a className="mt-3 inline-flex items-center gap-2 font-black uppercase text-acid" href="https://github.com/melroser/rolographs" rel="noreferrer" target="_blank">
+                Open repo <ArrowRight size={15} />
+              </a>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  );
+}

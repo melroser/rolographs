@@ -1,0 +1,12 @@
+.next/
+node_modules/
+out/
+dist/
+.env*
+!.env.example
+.DS_Store
+*.log
+coverage/
+.netlify/
+AGENTS.md
+CLAUDE.md
