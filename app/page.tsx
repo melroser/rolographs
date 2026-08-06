@@ -528,12 +528,15 @@ export default function Home() {
               Cursor Miami Ship Night // live event intelligence
             </div>
 
-            <h1 className="hero-line hyper-title text-[clamp(3.1rem,7.2vw,7rem)]" data-text="Rolograph">
-              Rolograph
+            <h1 className="hero-line title-lockup" aria-label="Rolograph">
+              <span className="title-serial">R/01 // relationship operating layer</span>
+              <span className="title-piece title-rolo">Rolo</span>
+              <span className="title-piece title-graph">graph</span>
+              <span className="title-subline">Live room intelligence</span>
             </h1>
 
-            <p className="hero-line mt-5 max-w-xl text-xl font-black uppercase leading-tight text-white md:text-2xl">
-              A room-scale relationship graph that makes the best programmers want to join Rob&apos;s team.
+            <p className="hero-line hero-lede mt-6 max-w-xl">
+              A room-scale relationship graph designed to make the right programmers want in.
             </p>
 
             <p className="hero-line mt-4 max-w-xl text-sm leading-6 text-white/70">
@@ -555,7 +558,7 @@ export default function Home() {
           <div className="mt-8 grid grid-cols-2 gap-3">
             {metrics.map((metric) => (
               <div className="metric-tile p-3" key={metric.label}>
-                <div className="font-display text-2xl uppercase text-acid">{metric.value}</div>
+                <div className="metric-value">{metric.value}</div>
                 <div className="mt-1 text-xs font-black uppercase text-white">{metric.label}</div>
                 <div className="mt-1 text-xs text-white/56">{metric.detail}</div>
               </div>
@@ -599,7 +602,7 @@ export default function Home() {
           </div>
 
           <div className="graph-canvas" aria-label="Interactive Rolograph relationship graph">
-            <div className="capture-flash pointer-events-none absolute left-1/2 top-1/2 z-10 grid h-44 w-44 -translate-x-1/2 -translate-y-1/2 place-items-center border border-acid/70 bg-acid/15 text-center font-display text-xl uppercase text-acid opacity-0 shadow-hyper">
+            <div className="capture-flash pointer-events-none absolute left-1/2 top-1/2 z-10 grid h-44 w-44 -translate-x-1/2 -translate-y-1/2 place-items-center border border-acid/70 bg-acid/15 text-center font-mono text-sm font-bold uppercase text-acid opacity-0 shadow-hyper">
               Edge Captured
             </div>
 
@@ -688,7 +691,7 @@ export default function Home() {
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <div className="font-mono text-xs uppercase text-white/54">Selected Node</div>
-              <h2 className="mt-1 text-3xl font-black uppercase leading-none text-white">{selected.label}</h2>
+              <h2 className="panel-title mt-1">{selected.label}</h2>
             </div>
             <div className="grid h-14 w-14 place-items-center border border-white/20 bg-white/10 text-acid">
               <Network size={28} />
@@ -698,7 +701,7 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-3">
             <div className="signal-tile p-3">
               <div className="font-mono text-xs uppercase text-white/50">Priority</div>
-              <div className="mt-1 font-display text-3xl text-acid">{selected.priority}</div>
+              <div className="metric-value mt-1">{selected.priority}</div>
             </div>
             <div className="signal-tile p-3">
               <div className="font-mono text-xs uppercase text-white/50">Confidence</div>
@@ -780,8 +783,8 @@ export default function Home() {
               <Sparkles size={15} />
               Recruitment Layer
             </div>
-            <h2 className="max-w-4xl font-display text-[clamp(2.2rem,5.4vw,5.8rem)] uppercase leading-[0.86] text-white">
-              Join the team turning rooms into living graphs.
+            <h2 className="recruit-title max-w-4xl">
+              Join the team turning rooms into <em>living graphs.</em>
             </h2>
             <p className="mt-5 max-w-3xl text-base leading-7 text-white/70">
               Rolograph is a demo for tonight, but the bigger product is obvious: event intelligence that knows who matters, why they matter, what happened, and what to do next.
@@ -822,7 +825,7 @@ export default function Home() {
 
             <div className="mb-4">
               <div className="font-mono text-xs uppercase text-white/54">One-click Interest Capture</div>
-              <h3 className="mt-1 text-2xl font-black uppercase text-white">Tell Rob you want in.</h3>
+              <h3 className="form-title mt-1">Tell Rob you want in.</h3>
             </div>
 
             <label className="mb-3 block text-xs font-black uppercase text-white/62" htmlFor="name">
