@@ -673,7 +673,7 @@ export default function Home() {
       tl.to({}, { duration: hold });
     };
 
-    move("event", presenterSteps[0], { scale: 1, x: 0, y: 0 }, 7);
+    move("event", presenterSteps[0], { scale: 1, x: 0, y: 0 }, 2);
     move("ben", presenterSteps[1], { scale: 1.2, x: 64, y: 82 }, 10);
     move("quicknode", presenterSteps[2], { scale: 1.16, x: -92, y: 44 }, 10);
 
