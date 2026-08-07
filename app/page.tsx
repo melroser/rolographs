@@ -448,6 +448,19 @@ function getNode(id: string) {
   return node;
 }
 
+// Quadratic arc between two nodes. The control point is pushed perpendicular to the
+// chord by a per-index offset so edges sharing a pair of endpoints fan out instead of
+// collapsing onto one line. Offset is small because the viewBox is only 100 units wide.
+function edgePath(sx: number, sy: number, tx: number, ty: number, index: number) {
+  const lift = ((index % 5) - 2) * 3;
+  const mx = (sx + tx) / 2;
+  const my = (sy + ty) / 2;
+  const dx = tx - sx;
+  const dy = ty - sy;
+  const length = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+  return `M ${sx} ${sy} Q ${mx + (-dy / length) * lift} ${my + (dx / length) * lift} ${tx} ${ty}`;
+}
+
 function countCapturesFor(captures: Capture[], nodeId: string) {
   return captures.reduce((total, capture) => (capture.nodeId === nodeId ? total + 1 : total), 0);
 }
@@ -841,20 +854,18 @@ export default function Home() {
                     <stop offset="100%" stopColor="#ff2bd6" />
                   </linearGradient>
                 </defs>
-                {[...edges, ...captureEdges].map((edge) => {
+                {[...edges, ...captureEdges].map((edge, index) => {
                   const source = getNode(edge.source);
                   const target = getNode(edge.target);
                   const isHot = selectedId === edge.source || selectedId === edge.target;
                   const isCaptured = capturedNodeIds.has(edge.target) && edge.source === OPERATOR_ID;
 
                   return (
-                    <line
+                    <path
                       className={`graph-edge ${isHot ? "is-hot" : ""} ${isCaptured ? "is-unlocked" : ""}`}
                       key={edge.id}
-                      x1={source.x}
-                      x2={target.x}
-                      y1={source.y}
-                      y2={target.y}
+                      d={edgePath(source.x, source.y, target.x, target.y, index)}
+                      fill="none"
                       opacity={0.95}
                       vectorEffect="non-scaling-stroke"
                     />
