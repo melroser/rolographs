@@ -770,7 +770,7 @@ export default function Home() {
             </h1>
 
             <p className="hero-line hero-lede mt-6 max-w-xl">
-              A Rolograph is a generated intelligence dossier for one specific encounter you&apos;re about to walk into.
+              Rolograph is a generated intelligence dossier for what you&apos;re about to walk into.
             </p>
 
             <p className="hero-line mt-4 max-w-xl text-base leading-7 text-white/78">
