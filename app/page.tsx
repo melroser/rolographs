@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 type NodeKind = "person" | "org" | "event" | "artifact" | "team";
-type Confidence = "High" | "Medium" | "Observed";
+type Confidence = "High" | "Medium" | "Observed" | "Verified";
 
 type GraphNode = {
   id: string;
@@ -31,7 +31,7 @@ type GraphNode = {
   kind: NodeKind;
   x: number;
   y: number;
-  priority: number;
+  basePriority: number;
   confidence: Confidence;
   summary: string;
   opener: string;
@@ -45,8 +45,18 @@ type GraphEdge = {
   target: string;
   label: string;
   weight: number;
-  unlocksAfterCapture?: boolean;
 };
+
+type Capture = {
+  id: string;
+  nodeId: string;
+  note: string;
+  at: number;
+};
+
+const OPERATOR_ID = "you";
+const CAPTURE_EDGE_WEIGHT = 5;
+const MAX_RENDERED_CAPTURES = 4;
 
 const nodes: GraphNode[] = [
   {
@@ -57,7 +67,7 @@ const nodes: GraphNode[] = [
     kind: "event",
     x: 50,
     y: 49,
-    priority: 100,
+    basePriority: 100,
     confidence: "High",
     summary:
       "The room this graph is built from: hosts, sponsors, partners, and venue, plus the two hard deadlines that shape every conversation in it.",
@@ -73,7 +83,7 @@ const nodes: GraphNode[] = [
     kind: "team",
     x: 22,
     y: 48,
-    priority: 98,
+    basePriority: 98,
     confidence: "High",
     summary:
       "Every relationship in the graph is measured from here. Captured conversations attach to this node and become the follow-up queue.",
@@ -89,7 +99,7 @@ const nodes: GraphNode[] = [
     kind: "person",
     x: 48,
     y: 18,
-    priority: 96,
+    basePriority: 96,
     confidence: "High",
     summary:
       "The organizer node. Ben is directing check-in, registration, and the two hard deadlines. A strong conversation here anchors you inside the Miami Cursor builder graph.",
@@ -105,7 +115,7 @@ const nodes: GraphNode[] = [
     kind: "org",
     x: 78,
     y: 31,
-    priority: 91,
+    basePriority: 91,
     confidence: "High",
     summary:
       "A clean technical lane for backend, infra, agents, wallets, and data flows without pretending to be a crypto maximalist.",
@@ -121,7 +131,7 @@ const nodes: GraphNode[] = [
     kind: "person",
     x: 31,
     y: 24,
-    priority: 76,
+    basePriority: 76,
     confidence: "Observed",
     summary:
       "Useful because she is attached to the event graph. Rolograph keeps uncertainty visible instead of hallucinating a title.",
@@ -137,7 +147,7 @@ const nodes: GraphNode[] = [
     kind: "person",
     x: 70,
     y: 64,
-    priority: 73,
+    basePriority: 73,
     confidence: "High",
     summary:
       "Business development and partner signal. Useful if the demo crosses wallets, developer APIs, or event sponsorship workflows.",
@@ -153,7 +163,7 @@ const nodes: GraphNode[] = [
     kind: "person",
     x: 24,
     y: 73,
-    priority: 82,
+    basePriority: 82,
     confidence: "High",
     summary:
       "A community connector for AI coding education, interviewing, and how people learn to build with agentic tools.",
@@ -169,7 +179,7 @@ const nodes: GraphNode[] = [
     kind: "org",
     x: 47,
     y: 82,
-    priority: 86,
+    basePriority: 86,
     confidence: "High",
     summary:
       "The persistent local network underneath the event. Winning the room matters; staying in this graph matters more.",
@@ -185,7 +195,7 @@ const nodes: GraphNode[] = [
     kind: "org",
     x: 58,
     y: 9,
-    priority: 68,
+    basePriority: 68,
     confidence: "High",
     summary:
       "Prize sponsor and ecosystem bridge. Relevant because the room is optimized for shipping, which changes what people want to talk about.",
@@ -201,7 +211,7 @@ const nodes: GraphNode[] = [
     kind: "org",
     x: 87,
     y: 72,
-    priority: 63,
+    basePriority: 63,
     confidence: "High",
     summary:
       "Useful if Rolograph becomes a sponsor intelligence layer for events, APIs, and developer relations.",
@@ -217,7 +227,7 @@ const nodes: GraphNode[] = [
     kind: "org",
     x: 70,
     y: 88,
-    priority: 75,
+    basePriority: 75,
     confidence: "High",
     summary:
       "Palma Labs is part of the event's persistent local builder layer: put Miami builders in one room, give them a deadline, and create a reason to stay connected afterward.",
@@ -233,7 +243,7 @@ const nodes: GraphNode[] = [
     kind: "artifact",
     x: 52,
     y: 63,
-    priority: 99,
+    basePriority: 99,
     confidence: "High",
     summary:
       "The graph is visible and editable while the event is still happening, which is the only window where the context is still accurate.",
@@ -249,7 +259,7 @@ const nodes: GraphNode[] = [
     kind: "team",
     x: 82,
     y: 50,
-    priority: 97,
+    basePriority: 97,
     confidence: "High",
     summary:
       "Rolograph needs people to build the next version: entity resolution, edge confidence, real-time graph state, and the rooms to test it in.",
@@ -274,11 +284,14 @@ const edges: GraphEdge[] = [
   { id: "event-palma", source: "event", target: "palma", label: "studio partner", weight: 3 },
   { id: "palma-lab", source: "palma", target: "lab", label: "Miami builders", weight: 3 },
   { id: "tatenda-lab", source: "tatenda", target: "lab", label: "community", weight: 3 },
-  { id: "you-ben", source: "you", target: "ben", label: "captured interaction", weight: 5, unlocksAfterCapture: true },
-  { id: "you-quicknode", source: "you", target: "quicknode", label: "technical follow-up", weight: 4, unlocksAfterCapture: true },
-  { id: "you-team", source: "you", target: "team", label: "contributor signal", weight: 5, unlocksAfterCapture: true },
-  { id: "you-tatenda", source: "you", target: "tatenda", label: "education bridge", weight: 3, unlocksAfterCapture: true },
 ];
+
+const baseEdgeWeightByNode = nodes.reduce<Record<string, number>>((totals, node) => {
+  totals[node.id] = edges
+    .filter((edge) => edge.source === node.id || edge.target === node.id)
+    .reduce((sum, edge) => sum + edge.weight, 0);
+  return totals;
+}, {});
 
 const presenterSteps = [
   "Booting event graph",
@@ -335,6 +348,37 @@ function getNode(id: string) {
   return node;
 }
 
+function countCapturesFor(captures: Capture[], nodeId: string) {
+  return captures.reduce((total, capture) => (capture.nodeId === nodeId ? total + 1 : total), 0);
+}
+
+// Live edge weight = authored graph weight plus every capture edge this node now carries.
+// The operator node accumulates one capture edge per distinct node it has talked to.
+function liveEdgeWeight(nodeId: string, capturedNodeIds: Set<string>) {
+  const base = baseEdgeWeightByNode[nodeId] ?? 0;
+  const captureEdges = nodeId === OPERATOR_ID ? capturedNodeIds.size : Number(capturedNodeIds.has(nodeId));
+  return base + captureEdges * CAPTURE_EDGE_WEIGHT;
+}
+
+function computePriority(node: GraphNode, captures: Capture[], capturedNodeIds: Set<string>) {
+  const noteCount = countCapturesFor(captures, node.id);
+  const captureBonus = noteCount > 0 ? 8 + Math.min(noteCount - 1, 3) * 2 : 0;
+  const score = Math.round(node.basePriority * 0.72) + liveEdgeWeight(node.id, capturedNodeIds) * 1.5 + captureBonus;
+  return Math.min(100, Math.round(score));
+}
+
+function formatRelativeTime(at: number, now: number) {
+  const seconds = Math.max(0, Math.round((now - at) / 1000));
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  return `${Math.floor(minutes / 60)}h ago`;
+}
+
+function prefersReducedMotion() {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 function toUrlEncoded(formData: FormData) {
   return new URLSearchParams(
     Array.from(formData.entries()).map(([key, value]) => [key, String(value)]),
@@ -343,23 +387,65 @@ function toUrlEncoded(formData: FormData) {
 
 export default function Home() {
   const [selectedId, setSelectedId] = useState("event");
-  const [interactionCaptured, setInteractionCaptured] = useState(false);
+  const [captures, setCaptures] = useState<Capture[]>([]);
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [noteError, setNoteError] = useState(false);
+  const [clockTick, setClockTick] = useState(0);
   const [demoActive, setDemoActive] = useState(false);
   const [demoStep, setDemoStep] = useState(presenterSteps[0]);
   const [joinStatus, setJoinStatus] = useState<"idle" | "sending" | "captured" | "local">("idle");
   const shellRef = useRef<HTMLElement | null>(null);
   const graphRef = useRef<HTMLDivElement | null>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const captureSeqRef = useRef(0);
 
   const selected = useMemo(() => getNode(selectedId), [selectedId]);
+  const interactionCaptured = captures.length > 0;
+
+  const capturedNodeIds = useMemo(() => new Set(captures.map((capture) => capture.nodeId)), [captures]);
+
+  // One derived edge per distinct captured node, drawn from the operator outward.
+  const captureEdges = useMemo<GraphEdge[]>(
+    () =>
+      Array.from(capturedNodeIds).map((nodeId) => ({
+        id: `capture-${nodeId}`,
+        source: OPERATOR_ID,
+        target: nodeId,
+        label: "captured interaction",
+        weight: CAPTURE_EDGE_WEIGHT,
+      })),
+    [capturedNodeIds],
+  );
 
   const connectedIds = useMemo(() => {
     const ids = new Set<string>([selectedId]);
-    edges.forEach((edge) => {
+    [...edges, ...captureEdges].forEach((edge) => {
       if (edge.source === selectedId) ids.add(edge.target);
       if (edge.target === selectedId) ids.add(edge.source);
     });
     return ids;
+  }, [selectedId, captureEdges]);
+
+  const selectedPriority = computePriority(selected, captures, capturedNodeIds);
+  const selectedVerified = capturedNodeIds.has(selected.id);
+  const selectedConfidence: Confidence = selectedVerified ? "Verified" : selected.confidence;
+  const selectedNoteCount = countCapturesFor(captures, selected.id);
+  const canCapture = selected.id !== OPERATOR_ID;
+
+  const recentCaptures = useMemo(() => [...captures].reverse(), [captures]);
+
+  useEffect(() => {
+    if (captures.length === 0) return;
+    setClockTick(Date.now());
+    const interval = window.setInterval(() => setClockTick(Date.now()), 15000);
+    return () => window.clearInterval(interval);
+  }, [captures.length]);
+
+  useEffect(() => {
+    setNoteOpen(false);
+    setNoteDraft("");
+    setNoteError(false);
   }, [selectedId]);
 
   useEffect(() => {
@@ -418,6 +504,15 @@ export default function Home() {
     document.documentElement.style.setProperty("--cursor-y", y);
   };
 
+  const addCapture = (nodeId: string, note: string) => {
+    const trimmed = note.trim();
+    if (!trimmed || nodeId === OPERATOR_ID) return false;
+    captureSeqRef.current += 1;
+    const id = `cap-${captureSeqRef.current}`;
+    setCaptures((current) => [...current, { id, nodeId, note: trimmed, at: Date.now() }]);
+    return true;
+  };
+
   const stopPresenter = () => {
     timelineRef.current?.kill();
     timelineRef.current = null;
@@ -432,7 +527,10 @@ export default function Home() {
   const startPresenter = () => {
     timelineRef.current?.kill();
     setDemoActive(true);
-    setInteractionCaptured(false);
+    setCaptures([]);
+    setNoteOpen(false);
+    setNoteDraft("");
+    setNoteError(false);
     setSelectedId("event");
 
     const tl = gsap.timeline({
@@ -463,12 +561,14 @@ export default function Home() {
     move("quicknode", presenterSteps[2], { scale: 1.16, x: -92, y: 44 }, 10);
 
     tl.call(() => {
-      setSelectedId("you");
+      setSelectedId("jen");
       setDemoStep(presenterSteps[3]);
     });
-    tl.to(graphRef.current, { scale: 1.1, x: 76, y: 0, duration: 2.1 });
+    tl.to(graphRef.current, { scale: 1.14, x: -66, y: -34, duration: 2.1 });
     tl.to({}, { duration: 5 });
-    tl.call(() => setInteractionCaptured(true));
+    tl.call(() => {
+      addCapture("jen", "Talked through partner-side follow-up. Wants to see the graph run on a room OKX sponsors next.");
+    });
     tl.to(".capture-flash", { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" });
     tl.to(".capture-flash", { opacity: 0, scale: 1.24, duration: 1.15, ease: "power2.out" });
     tl.to({}, { duration: 7 });
@@ -484,14 +584,31 @@ export default function Home() {
     setSelectedId(id);
   };
 
-  const handleCapture = () => {
-    setInteractionCaptured(true);
-    setSelectedId("product");
-    gsap.fromTo(
-      ".capture-flash",
-      { opacity: 0, scale: 0.82 },
-      { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)", yoyo: true, repeat: 1 },
-    );
+  const handleRecordClick = () => {
+    if (demoActive) stopPresenter();
+    setNoteError(false);
+    setNoteOpen((open) => !open);
+  };
+
+  const handleNoteSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!addCapture(selectedId, noteDraft)) {
+      setNoteError(true);
+      return;
+    }
+
+    setNoteDraft("");
+    setNoteError(false);
+    setNoteOpen(false);
+
+    if (!prefersReducedMotion()) {
+      gsap.fromTo(
+        ".capture-flash",
+        { opacity: 0, scale: 0.82 },
+        { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)", yoyo: true, repeat: 1 },
+      );
+    }
   };
 
   const handleJoinSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -620,21 +737,21 @@ export default function Home() {
                     <stop offset="100%" stopColor="#ff2bd6" />
                   </linearGradient>
                 </defs>
-                {edges.map((edge) => {
+                {[...edges, ...captureEdges].map((edge) => {
                   const source = getNode(edge.source);
                   const target = getNode(edge.target);
                   const isHot = selectedId === edge.source || selectedId === edge.target;
-                  const isUnlocked = Boolean(edge.unlocksAfterCapture && interactionCaptured);
+                  const isCaptured = capturedNodeIds.has(edge.target) && edge.source === OPERATOR_ID;
 
                   return (
                     <line
-                      className={`graph-edge ${isHot ? "is-hot" : ""} ${isUnlocked ? "is-unlocked" : ""}`}
+                      className={`graph-edge ${isHot ? "is-hot" : ""} ${isCaptured ? "is-unlocked" : ""}`}
                       key={edge.id}
                       x1={source.x}
                       x2={target.x}
                       y1={source.y}
                       y2={target.y}
-                      opacity={isUnlocked || !edge.unlocksAfterCapture ? 0.95 : 0.18}
+                      opacity={0.95}
                       vectorEffect="non-scaling-stroke"
                     />
                   );
@@ -701,11 +818,20 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-3">
             <div className="signal-tile p-3">
               <div className="font-mono text-xs uppercase text-white/50">Priority</div>
-              <div className="metric-value mt-1">{selected.priority}</div>
+              <div className="metric-value mt-1">{selectedPriority}</div>
+              <div className="mt-1 font-mono text-[0.62rem] uppercase text-white/45">
+                base {selected.basePriority} + edges {liveEdgeWeight(selected.id, capturedNodeIds)}
+                {selectedNoteCount > 0 ? ` + ${selectedNoteCount} note${selectedNoteCount > 1 ? "s" : ""}` : ""}
+              </div>
             </div>
             <div className="signal-tile p-3">
               <div className="font-mono text-xs uppercase text-white/50">Confidence</div>
-              <div className="mt-2 text-sm font-black uppercase text-cyanpop">{selected.confidence}</div>
+              <div className={`mt-2 text-sm font-black uppercase ${selectedVerified ? "text-acid" : "text-cyanpop"}`}>
+                {selectedConfidence}
+              </div>
+              <div className="mt-1 font-mono text-[0.62rem] uppercase text-white/45">
+                {selectedVerified ? "verified by capture" : "researched, not verified"}
+              </div>
             </div>
           </div>
 
@@ -741,20 +867,84 @@ export default function Home() {
           </div>
 
           <div className="mt-auto pt-6">
-            <button className="neon-button w-full" type="button" onClick={handleCapture}>
-              <CircleDotDashed size={18} />
-              Record Interaction
-            </button>
-            <div className="mt-3 border border-white/15 bg-black/20 p-4">
-              <div className="flex items-center gap-2 text-xs font-black uppercase text-acid">
-                <Activity size={14} />
-                {interactionCaptured ? "Live note captured" : "Ready for live note"}
-              </div>
-              <p className="mt-2 text-xs leading-5 text-white/64">
-                {interactionCaptured
-                  ? "Conversation logged. The graph promoted researched context into verified relationship history and opened follow-up edges."
-                  : "Record a conversation to turn researched context into verified relationship history."}
+            {canCapture ? (
+              <>
+                <button className="neon-button w-full" type="button" onClick={handleRecordClick} aria-expanded={noteOpen}>
+                  <CircleDotDashed size={18} />
+                  {noteOpen ? "Cancel note" : "Record Interaction"}
+                </button>
+                {!noteOpen && (
+                  <p className="mt-2 font-mono text-[0.62rem] uppercase text-white/45">Records against {selected.label}</p>
+                )}
+              </>
+            ) : (
+              <p className="border border-white/15 bg-black/20 p-3 font-mono text-[0.68rem] uppercase leading-5 text-white/54">
+                This is you. Select someone else in the graph to record a conversation.
               </p>
+            )}
+
+            {canCapture && noteOpen && (
+              <form className="mt-3 border border-acid/40 bg-black/28 p-4" onSubmit={handleNoteSubmit}>
+                <label className="mb-2 block text-xs font-black uppercase text-acid" htmlFor="capture-note">
+                  What was actually said
+                </label>
+                <textarea
+                  autoFocus
+                  className="field-input min-h-20 resize-y text-sm"
+                  id="capture-note"
+                  onChange={(event) => {
+                    setNoteDraft(event.target.value);
+                    if (noteError) setNoteError(false);
+                  }}
+                  placeholder={`Note from the conversation with ${selected.label}`}
+                  value={noteDraft}
+                />
+                {noteError && (
+                  <p className="mt-2 font-mono text-[0.66rem] uppercase text-hotpink">
+                    A note is required. Empty captures are not recorded.
+                  </p>
+                )}
+                <button className="neon-button mt-3 w-full" type="submit">
+                  <Activity size={16} />
+                  Capture edge
+                </button>
+              </form>
+            )}
+
+            <div className="mt-3 border border-white/15 bg-black/20 p-4">
+              <div className="flex items-center justify-between gap-2 text-xs font-black uppercase text-acid">
+                <span className="flex items-center gap-2">
+                  <Activity size={14} />
+                  {interactionCaptured ? "Captured interactions" : "Ready for live note"}
+                </span>
+                {interactionCaptured && <span className="font-mono text-white/54">{captures.length}</span>}
+              </div>
+
+              {interactionCaptured ? (
+                <ul className="mt-3 space-y-2">
+                  {recentCaptures.slice(0, MAX_RENDERED_CAPTURES).map((capture) => (
+                    <li className="border border-white/12 bg-black/25 p-2.5" key={capture.id}>
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-xs font-black uppercase text-cyanpop">{getNode(capture.nodeId).label}</span>
+                        <span className="font-mono text-[0.62rem] uppercase text-white/45">
+                          {formatRelativeTime(capture.at, Math.max(clockTick, capture.at))}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs leading-5 text-white/70">{capture.note}</p>
+                    </li>
+                  ))}
+                  {recentCaptures.length > MAX_RENDERED_CAPTURES && (
+                    <li className="font-mono text-[0.62rem] uppercase text-white/45">
+                      + {recentCaptures.length - MAX_RENDERED_CAPTURES} earlier captures
+                    </li>
+                  )}
+                </ul>
+              ) : (
+                <p className="mt-2 text-xs leading-5 text-white/64">
+                  Record a conversation to turn researched context into a verified edge, a higher priority, and a follow-up you will
+                  actually keep.
+                </p>
+              )}
             </div>
           </div>
         </aside>
