@@ -400,12 +400,45 @@ button {
   text-transform: uppercase;
 }
 
+/* Kind reads from the back of a room only if it is on the border; the 2.35rem chip is
+   too small to carry it. These are deliberately single-class selectors so they stay
+   below .graph-node:hover and .graph-node.is-selected, both (0,2,0), which must keep
+   winning. They sit after .graph-node so they beat its border shorthand. */
+.kind-event {
+  border-color: rgba(215, 255, 47, 0.72);
+  background: rgba(23, 25, 9, 0.78);
+}
+
+.kind-person {
+  border-color: rgba(32, 246, 255, 0.66);
+  background: rgba(8, 20, 26, 0.78);
+}
+
+.kind-org {
+  border-color: rgba(255, 122, 26, 0.68);
+  background: rgba(26, 15, 8, 0.78);
+}
+
+.kind-artifact {
+  border-color: rgba(255, 243, 74, 0.66);
+  background: rgba(24, 22, 9, 0.78);
+}
+
+.kind-team {
+  border-color: rgba(255, 43, 214, 0.66);
+  background: rgba(26, 8, 22, 0.78);
+}
+
 .kind-event .node-chip {
   background: linear-gradient(135deg, var(--acid), var(--volt));
 }
 
+.kind-person .node-chip {
+  background: linear-gradient(135deg, var(--cyanpop), #c4faff);
+}
+
 .kind-org .node-chip {
-  background: linear-gradient(135deg, var(--cyanpop), #ffffff);
+  background: linear-gradient(135deg, var(--orange), var(--volt));
 }
 
 .kind-team .node-chip {
