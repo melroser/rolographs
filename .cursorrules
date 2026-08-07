@@ -1,0 +1,86 @@
+# Rolograph — AI Rules
+
+Built for Cursor Miami: Ship Night, August 6 2026. These rules governed how Cursor
+was used to build this project and how it should be extended.
+
+## Product intent
+
+Rolograph turns an event into a living relationship graph. It answers four questions
+that flat contact tools cannot: why does this person matter right now, how are they
+connected to everyone else in the room, what was actually said, and what happens next.
+
+The problem is relationship memory loss at events. Optimize every decision for that
+problem, not for visual novelty.
+
+## Scope discipline
+
+The PRD was locked at 6:30 PM and lives in `PRD.md`. Under Ship Night rules, features
+may be cut after the lock but never added.
+
+- Do not add capabilities that are absent from `PRD.md`.
+- Do not edit `PRD.md` itself. It is the locked promise judges score against.
+- When time is short, deepen an existing PRD item rather than starting a new one.
+- `PRD.md` lists an explicit out-of-scope section. Respect it: no auth, no database,
+  no CRM integrations, no scraping, no identity resolution.
+
+## Architecture
+
+- Next.js App Router, TypeScript, Tailwind CSS, GSAP, hand-rolled SVG graph.
+- Client-side state only. There is no backend and no persistence layer by design.
+- Graph nodes and edges are typed data in `app/page.tsx`. Keep them as plain typed
+  arrays so the data model stays readable in a live demo.
+- `app/globals.css` owns the entire visual system. Do not scatter one-off styles.
+- No external graph layout library. Node positions are art-directed percentages
+  because the demo needs choreography more than general-purpose layout.
+
+## Data integrity
+
+This is the rule that matters most.
+
+- Never invent a person's title, employer, or relationship. Unverified identity is
+  represented honestly — Amy Street is deliberately left as a host node marked
+  `confidence: "Observed"` and tagged `needs enrichment` rather than assigned a
+  plausible-sounding biography.
+- Every node carries a `confidence` value. Distinguish observed edges from verified
+  ones. Do not promote an edge to `High` without a real source.
+- Event facts (schedule, venue, deadlines, hosts, sponsors) come from the official
+  Luma listing and the Ship Night site. Do not paraphrase them into something wrong.
+
+## Motion
+
+- Motion must carry meaning. Animate to direct attention to a node, an edge, or a
+  state change — never as decoration that competes with the signal.
+- Respect `prefers-reduced-motion`. The entrance timeline is skipped entirely when set.
+- GSAP timelines must be killed on unmount and on presenter stop. Leaked timelines
+  fighting each other is the most likely way this demo breaks on stage.
+- Animate transforms and opacity. Avoid animating layout-triggering properties.
+
+## Typography
+
+An earlier ultra-bold all-caps treatment was rejected for looking like generic
+hackathon filler and for clipping at narrow widths.
+
+- Keep the two-voice lockup: restrained sans for `Rolo`, high-contrast italic serif
+  for `graph`.
+- Sentence case for supporting copy. Uppercase is reserved for small monospace labels.
+- Stay aggressive through color, graph density, and motion — not through shouting type.
+
+## Copy
+
+- Write for a stranger who has never heard of this product. Anyone should understand
+  what Rolograph does within twenty seconds of the page loading.
+- Lead with the problem, then the product. Never lead with the author.
+- No first-person founder voice and no personal names in product copy.
+
+## Build and deploy
+
+- `npm run build` runs `next build --webpack`. Turbopack hits a CSS compiler crash in
+  this environment. Do not switch it back.
+- Deploy target is Netlify (`netlify.toml`). The public URL must always match `main`.
+- Verify the deployed site after every push. A stale deploy is indistinguishable from
+  a broken product to anyone opening the public link.
+
+## Definition of done
+
+A change is done when `npm run build` passes, the deployed URL reflects it, and every
+success criterion in `PRD.md` can still be performed by a stranger without guidance.

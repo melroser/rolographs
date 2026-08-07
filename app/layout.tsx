@@ -4,11 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Rolograph | Cursor Miami Ship Night",
   description:
-    "A kinetic event-intelligence graph for recruiting builders at Cursor Miami Ship Night.",
+    "Turn an event into a live relationship graph: who matters, how they connect, what was said, and what to do next.",
   openGraph: {
     title: "Rolograph | Cursor Miami Ship Night",
     description:
-      "Hyperpop relationship intelligence for finding teammates, recording interactions, and shipping live.",
+      "Turn an event into a live relationship graph: who matters, how they connect, what was said, and what to do next.",
     type: "website",
   },
 };

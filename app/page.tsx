@@ -60,26 +60,26 @@ const nodes: GraphNode[] = [
     priority: 100,
     confidence: "High",
     summary:
-      "Check in at app.cursormiami.com, register the team, lock the PRD by 6:30, and submit the live product by 9:30. Solo builders can use the platform to find teammates in the room.",
-    opener: "Show the live map, then ask who is still looking for a team and should be pulled into the build.",
-    desiredEdge: "Rob -> Cursor Miami: builder who ships under pressure",
+      "The room this graph is built from: hosts, sponsors, partners, and venue, plus the two hard deadlines that shape every conversation in it.",
+    opener: "Open the room map and work down the priority list before the night runs out.",
+    desiredEdge: "You -> Cursor Miami: builder who ships under pressure",
     tags: ["PRD lock", "9:30 submission", "3 minute demos"],
   },
   {
-    id: "rob",
-    label: "Rob",
-    kicker: "Builder",
-    role: "Founder/operator recruiting a team through the demo itself",
+    id: "you",
+    label: "You",
+    kicker: "Operator",
+    role: "The person working the room and capturing what actually happened",
     kind: "team",
     x: 22,
     y: 48,
     priority: 98,
     confidence: "High",
     summary:
-      "The graph makes Rob legible as the person coordinating product, story, and technical execution in real time.",
-    opener: "I am using tonight to prove the team thesis: ship the graph, recruit from the graph, improve the graph.",
-    desiredEdge: "Rob -> cracked programmers: founding build team",
-    tags: ["founder", "demo owner", "recruiting"],
+      "Every relationship in the graph is measured from here. Captured conversations attach to this node and become the follow-up queue.",
+    opener: "Start from the highest-priority unmet node and work outward.",
+    desiredEdge: "You -> the room: verified relationships instead of forgotten names",
+    tags: ["operator", "capture", "follow-up"],
   },
   {
     id: "ben",
@@ -92,16 +92,16 @@ const nodes: GraphNode[] = [
     priority: 96,
     confidence: "High",
     summary:
-      "The organizer node. Ben is directing check-in, team registration, solo-builder matching, and the two hard deadlines. A strong conversation anchors Rob inside the Miami Cursor builder graph.",
+      "The organizer node. Ben is directing check-in, registration, and the two hard deadlines. A strong conversation here anchors you inside the Miami Cursor builder graph.",
     opener: "What's the most interesting thing you've seen somebody attempt so far tonight?",
-    desiredEdge: "Rob -> Ben: technical peer building with agents",
+    desiredEdge: "You -> Ben: technical peer building with agents",
     tags: ["Cursor", "AI coding", "host"],
   },
   {
     id: "quicknode",
     label: "QuickNode",
     kicker: "Sponsor",
-    role: "Infrastructure sponsor and likely technical recruiting path",
+    role: "Infrastructure sponsor and the cleanest technical lane in the room",
     kind: "org",
     x: 78,
     y: 31,
@@ -110,7 +110,7 @@ const nodes: GraphNode[] = [
     summary:
       "A clean technical lane for backend, infra, agents, wallets, and data flows without pretending to be a crypto maximalist.",
     opener: "Where are you seeing agents intersect with infrastructure tonight?",
-    desiredEdge: "Rob -> QuickNode engineer: technical contact",
+    desiredEdge: "You -> QuickNode engineer: technical contact",
     tags: ["infra", "APIs", "sponsor"],
   },
   {
@@ -126,7 +126,7 @@ const nodes: GraphNode[] = [
     summary:
       "Useful because she is attached to the event graph. Rolograph keeps uncertainty visible instead of hallucinating a title.",
     opener: "What role are you playing in tonight's build ecosystem?",
-    desiredEdge: "Rob -> Amy: verified host relationship after live context",
+    desiredEdge: "You -> Amy: verified host relationship after live context",
     tags: ["host", "needs enrichment", "local graph"],
   },
   {
@@ -142,7 +142,7 @@ const nodes: GraphNode[] = [
     summary:
       "Business development and partner signal. Useful if the demo crosses wallets, developer APIs, or event sponsorship workflows.",
     opener: "What kind of projects are you hoping people actually build with OKX tonight?",
-    desiredEdge: "Rob -> Jen: partner-aware product conversation",
+    desiredEdge: "You -> Jen: partner-aware product conversation",
     tags: ["OKX", "BD", "partner"],
   },
   {
@@ -158,7 +158,7 @@ const nodes: GraphNode[] = [
     summary:
       "A community connector for AI coding education, interviewing, and how people learn to build with agentic tools.",
     opener: "What should AI coding education feel like when the learner can ship on day one?",
-    desiredEdge: "Rob -> Tatenda: education and local community bridge",
+    desiredEdge: "You -> Tatenda: education and local community bridge",
     tags: ["education", "Miami", "community"],
   },
   {
@@ -174,7 +174,7 @@ const nodes: GraphNode[] = [
     summary:
       "The persistent local network underneath the event. Winning the room matters; staying in this graph matters more.",
     opener: "Who in this building should see a relationship intelligence tool for live events?",
-    desiredEdge: "Rob -> The LAB: recurring Miami founder access",
+    desiredEdge: "You -> The LAB: recurring Miami founder access",
     tags: ["venue", "founders", "Miami"],
   },
   {
@@ -188,9 +188,9 @@ const nodes: GraphNode[] = [
     priority: 68,
     confidence: "High",
     summary:
-      "Prize sponsor and potential crypto ecosystem bridge. Relevant because the demo rewards shipping and team formation.",
+      "Prize sponsor and ecosystem bridge. Relevant because the room is optimized for shipping, which changes what people want to talk about.",
     opener: "What would make a non-crypto relationship graph useful to Superteam builders?",
-    desiredEdge: "Rob -> Superteam: prize-room product feedback",
+    desiredEdge: "You -> Superteam: prize-room product feedback",
     tags: ["sponsor", "prize", "builders"],
   },
   {
@@ -206,7 +206,7 @@ const nodes: GraphNode[] = [
     summary:
       "Useful if Rolograph becomes a sponsor intelligence layer for events, APIs, and developer relations.",
     opener: "How do you decide which event builders are worth follow-up after a ship night?",
-    desiredEdge: "Rob -> OKX: sponsor analytics conversation",
+    desiredEdge: "You -> OKX: sponsor analytics conversation",
     tags: ["wallet", "developer relations", "partner"],
   },
   {
@@ -222,7 +222,7 @@ const nodes: GraphNode[] = [
     summary:
       "Palma Labs is part of the event's persistent local builder layer: put Miami builders in one room, give them a deadline, and create a reason to stay connected afterward.",
     opener: "What would make this useful as the relationship layer across every room Palma runs?",
-    desiredEdge: "Rob -> Palma Labs: repeat event intelligence pilot",
+    desiredEdge: "You -> Palma Labs: repeat event intelligence pilot",
     tags: ["studio", "Miami", "partner"],
   },
   {
@@ -236,26 +236,26 @@ const nodes: GraphNode[] = [
     priority: 99,
     confidence: "High",
     summary:
-      "A demo that makes the social graph visible, editable, and recruitable while the event is still happening.",
+      "The graph is visible and editable while the event is still happening, which is the only window where the context is still accurate.",
     opener: "Click a node, capture a conversation, watch the graph rewrite the next move.",
-    desiredEdge: "Product -> team: visible proof that the idea deserves builders",
+    desiredEdge: "Product -> operator: the follow-up you would otherwise forget",
     tags: ["GSAP", "graph UX", "follow-ups"],
   },
   {
     id: "team",
-    label: "Founding Build Team",
-    kicker: "Recruit",
-    role: "AI product engineers, graph UI freaks, data people, event operators",
+    label: "Build Team",
+    kicker: "Open roles",
+    role: "AI product engineers, graph systems builders, motion engineers, event operators",
     kind: "team",
     x: 82,
     y: 50,
     priority: 97,
     confidence: "High",
     summary:
-      "The ask is direct: join the team that turns high-value rooms into living maps before the opportunity disappears.",
-    opener: "If this made you want to touch the code, join the build tonight.",
-    desiredEdge: "Programmer -> Rob: commits, taste, velocity",
-    tags: ["join", "ship", "founding team"],
+      "Rolograph needs people to build the next version: entity resolution, edge confidence, real-time graph state, and the rooms to test it in.",
+    opener: "Anyone who wants to work on this can leave a signal on the site.",
+    desiredEdge: "Contributor -> Rolograph: commits, taste, velocity",
+    tags: ["open roles", "contribute", "next version"],
   },
 ];
 
@@ -266,18 +266,18 @@ const edges: GraphEdge[] = [
   { id: "event-superteam", source: "event", target: "superteam", label: "prize", weight: 4 },
   { id: "event-lab", source: "event", target: "lab", label: "venue", weight: 4 },
   { id: "event-product", source: "event", target: "product", label: "demo target", weight: 5 },
-  { id: "product-rob", source: "product", target: "rob", label: "owner", weight: 5 },
-  { id: "product-team", source: "product", target: "team", label: "recruits", weight: 5 },
+  { id: "product-you", source: "product", target: "you", label: "operator", weight: 5 },
+  { id: "product-team", source: "product", target: "team", label: "open roles", weight: 5 },
   { id: "quicknode-team", source: "quicknode", target: "team", label: "infra talent", weight: 3 },
   { id: "jen-okx", source: "jen", target: "okx", label: "BD", weight: 4 },
   { id: "okx-event", source: "okx", target: "event", label: "partner", weight: 3 },
   { id: "event-palma", source: "event", target: "palma", label: "studio partner", weight: 3 },
   { id: "palma-lab", source: "palma", target: "lab", label: "Miami builders", weight: 3 },
   { id: "tatenda-lab", source: "tatenda", target: "lab", label: "community", weight: 3 },
-  { id: "rob-ben", source: "rob", target: "ben", label: "captured interaction", weight: 5, unlocksAfterCapture: true },
-  { id: "rob-quicknode", source: "rob", target: "quicknode", label: "technical follow-up", weight: 4, unlocksAfterCapture: true },
-  { id: "rob-team", source: "rob", target: "team", label: "recruitment signal", weight: 5, unlocksAfterCapture: true },
-  { id: "rob-tatenda", source: "rob", target: "tatenda", label: "education bridge", weight: 3, unlocksAfterCapture: true },
+  { id: "you-ben", source: "you", target: "ben", label: "captured interaction", weight: 5, unlocksAfterCapture: true },
+  { id: "you-quicknode", source: "you", target: "quicknode", label: "technical follow-up", weight: 4, unlocksAfterCapture: true },
+  { id: "you-team", source: "you", target: "team", label: "contributor signal", weight: 5, unlocksAfterCapture: true },
+  { id: "you-tatenda", source: "you", target: "tatenda", label: "education bridge", weight: 3, unlocksAfterCapture: true },
 ];
 
 const presenterSteps = [
@@ -286,7 +286,7 @@ const presenterSteps = [
   "Sponsor infrastructure lane",
   "Capturing live interaction",
   "Graph rewiring follow-ups",
-  "Recruiting the build team",
+  "Open roles on the next version",
 ];
 
 const metrics = [
@@ -439,7 +439,7 @@ export default function Home() {
       defaults: { ease: "power3.inOut" },
       onComplete: () => {
         setDemoActive(false);
-        setDemoStep("Recruitment pitch live");
+        setDemoStep("Open roles live");
       },
     });
 
@@ -463,7 +463,7 @@ export default function Home() {
     move("quicknode", presenterSteps[2], { scale: 1.16, x: -92, y: 44 }, 10);
 
     tl.call(() => {
-      setSelectedId("rob");
+      setSelectedId("you");
       setDemoStep(presenterSteps[3]);
     });
     tl.to(graphRef.current, { scale: 1.1, x: 76, y: 0, duration: 2.1 });
@@ -536,11 +536,11 @@ export default function Home() {
             </h1>
 
             <p className="hero-line hero-lede mt-6 max-w-xl">
-              A room-scale relationship graph designed to make the right programmers want in.
+              You meet thirty people at an event and remember four names by Monday.
             </p>
 
             <p className="hero-line mt-4 max-w-xl text-sm leading-6 text-white/70">
-              Built for tonight: identify the power nodes, capture live conversations, rewrite the follow-up graph, and end the demo with a direct recruitment ask.
+              Rolograph turns a room into a live relationship graph: who matters and why, how everyone connects, what was actually said, and what to do next. Capture a conversation while it is still accurate and the graph rewrites your follow-ups.
             </p>
 
             <div className="hero-line mt-6 flex flex-wrap gap-3">
@@ -550,7 +550,7 @@ export default function Home() {
               </button>
               <a className="ghost-button" href="#join-build">
                 <UserPlus size={18} />
-                Join Build
+                Open Roles
               </a>
             </div>
           </div>
@@ -568,10 +568,10 @@ export default function Home() {
           <div className="hero-line mt-6 border border-white/15 bg-black/20 p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-black uppercase text-cyanpop">
               <BrainCircuit size={17} />
-              Demo Thesis
+              Why it matters
             </div>
             <p className="text-sm leading-6 text-white/72">
-              Do not tell the room you are forming a team. Make the room watch the team-forming machine run.
+              Context decays fastest in the hour after you meet someone. Rolograph captures it while it is still true.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <a className="signal-link" href="https://app.cursormiami.com" rel="noreferrer" target="_blank">
@@ -592,7 +592,7 @@ export default function Home() {
                   <span className="marquee-word">ship</span>
                   <span>graph the room</span>
                   <span className="marquee-word">capture edge</span>
-                  <span>recruit builders</span>
+                  <span>verify relationships</span>
                   <span className="marquee-word">zoom node</span>
                   <span>submit before 9:30</span>
                   <span>no slides</span>
@@ -752,8 +752,8 @@ export default function Home() {
               </div>
               <p className="mt-2 text-xs leading-5 text-white/64">
                 {interactionCaptured
-                  ? "Rob showed the graph, logged the conversation, unlocked follow-up edges to Ben, QuickNode, Tatenda, and the build team."
-                  : "Click record during the demo to show the graph mutating from researched context into verified relationship history."}
+                  ? "Conversation logged. The graph promoted researched context into verified relationship history and opened follow-up edges."
+                  : "Record a conversation to turn researched context into verified relationship history."}
               </p>
             </div>
           </div>
@@ -781,13 +781,13 @@ export default function Home() {
           <div>
             <div className="mb-3 inline-flex items-center gap-2 border border-hotpink/40 bg-hotpink/10 px-3 py-2 text-xs font-black uppercase text-hotpink">
               <Sparkles size={15} />
-              Recruitment Layer
+              Open Roles
             </div>
             <h2 className="recruit-title max-w-4xl">
-              Join the team turning rooms into <em>living graphs.</em>
+              Help build the <em>next version.</em>
             </h2>
             <p className="mt-5 max-w-3xl text-base leading-7 text-white/70">
-              Rolograph is a demo for tonight, but the bigger product is obvious: event intelligence that knows who matters, why they matter, what happened, and what to do next.
+              Tonight&apos;s build is one room. The product underneath it is event intelligence that knows who matters, why they matter, what happened, and what to do next. These are the lanes where it needs real engineering.
             </p>
 
             <div className="mt-6 grid gap-3 md:grid-cols-2">
@@ -821,11 +821,11 @@ export default function Home() {
                 Do not fill this out: <input name="bot-field" />
               </label>
             </p>
-            <input type="hidden" name="signal" value="Cursor Miami Ship Night recruitment demo" />
+            <input type="hidden" name="signal" value="Cursor Miami Ship Night" />
 
             <div className="mb-4">
-              <div className="font-mono text-xs uppercase text-white/54">One-click Interest Capture</div>
-              <h3 className="form-title mt-1">Tell Rob you want in.</h3>
+              <div className="font-mono text-xs uppercase text-white/54">Interest Capture</div>
+              <h3 className="form-title mt-1">Want to work on this?</h3>
             </div>
 
             <label className="mb-3 block text-xs font-black uppercase text-white/62" htmlFor="name">
@@ -865,9 +865,9 @@ export default function Home() {
             </button>
 
             <div className="mt-4 border border-white/15 bg-white/[0.05] p-3 text-sm leading-6 text-white/68">
-              {joinStatus === "captured" && "Captured. Netlify will store the submission after deploy, and the local demo already moved the room toward team formation."}
-              {joinStatus === "local" && "Signal staged locally. If Netlify Forms is not active yet, use the GitHub repo or find Rob in the room."}
-              {joinStatus === "idle" && "On Netlify, this form records interest without a backend. In-room, it also gives Rob a clean closing CTA."}
+              {joinStatus === "captured" && "Captured. The signal is stored and will get a reply."}
+              {joinStatus === "local" && "Signal staged locally. If Netlify Forms is not active yet, open an issue on the repo instead."}
+              {joinStatus === "idle" && "Recorded through Netlify Forms, no backend and no account required."}
               <a className="mt-3 inline-flex items-center gap-2 font-black uppercase text-acid" href="https://github.com/melroser/rolographs" rel="noreferrer" target="_blank">
                 Open repo <ArrowRight size={15} />
               </a>
