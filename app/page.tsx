@@ -566,21 +566,24 @@ export default function Home() {
       return;
     }
 
+    // These groups used to fire together and finish in about 1.5 seconds, which read as
+    // one simultaneous flash. Same tweens, spaced out: the definition lands, then the room
+    // populates a node at a time, then the read on it. Roughly 4.7 seconds end to end.
     const ctx = gsap.context(() => {
       gsap.from(".hero-line", {
         y: 34,
         opacity: 0,
         duration: 0.9,
         ease: "power3.out",
-        stagger: 0.08,
+        stagger: 0.18,
       });
       gsap.from(".graph-node", {
         scale: 0.2,
         opacity: 0,
         duration: 0.82,
         ease: "back.out(2.4)",
-        stagger: 0.028,
-        delay: 0.2,
+        stagger: 0.12,
+        delay: 1.8,
       });
       gsap.to(".graph-node", {
         y: "random(-5, 5)",
@@ -590,14 +593,15 @@ export default function Home() {
         yoyo: true,
         ease: "sine.inOut",
         stagger: 0.06,
+        delay: 4.2,
       });
       gsap.from(".metric-tile", {
         x: -18,
         opacity: 0,
         duration: 0.7,
         ease: "power2.out",
-        stagger: 0.08,
-        delay: 0.42,
+        stagger: 0.14,
+        delay: 3.7,
       });
     }, shellRef);
 
