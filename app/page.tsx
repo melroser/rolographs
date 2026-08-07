@@ -417,6 +417,27 @@ const roles = [
   },
 ];
 
+const howItWorks = [
+  {
+    step: "01",
+    title: "Give it whatever you have",
+    detail:
+      "Screenshots of a guest list. The event page. A recruiter's InMail. Your inbox and calendar. Attendee lists are not available through an API — the real artifact is a blurry crop on your phone, so that is what it takes. No integrations, no clean data, no setup.",
+  },
+  {
+    step: "02",
+    title: "It reads, resolves, and grades",
+    detail:
+      "Cross-references public signal against your own history, then marks what is confirmed, what is only a warm lead, and what it could not read at all. The grading exists because the inputs are unreliable: you cannot promise certainty from a low-res crop, so every claim carries its evidence level and every unknown is stated instead of guessed.",
+  },
+  {
+    step: "03",
+    title: "You get the brief",
+    detail:
+      "Who to find and in what order. The exact words to open with. What each claim rests on. What to do next — and after the encounter, what you captured is folded back in.",
+  },
+];
+
 const buildStack = ["Next.js App Router", "TypeScript", "Tailwind CSS", "GSAP timeline", "SVG graph engine", "Netlify Forms"];
 
 function getNode(id: string) {
@@ -732,11 +753,15 @@ export default function Home() {
             </h1>
 
             <p className="hero-line hero-lede mt-6 max-w-xl">
-              You meet thirty people at an event and remember four names by Monday.
+              A Rolograph is a generated intelligence dossier for one specific encounter you&apos;re about to walk into.
             </p>
 
-            <p className="hero-line mt-4 max-w-xl text-sm leading-6 text-white/70">
-              Rolograph turns a room into a live relationship graph: who matters and why, how everyone connects, what was actually said, and what to do next. Capture a conversation while it is still accurate and the graph rewrites your follow-ups.
+            <p className="hero-line mt-4 max-w-xl text-base leading-7 text-white/78">
+              An event, a room, a recruiter screen. Who&apos;s there, why they matter to you, what to say, and what it&apos;s grounded in.
+            </p>
+
+            <p className="hero-line mt-4 max-w-xl text-sm leading-6 text-white/62">
+              You meet thirty people at an event and remember four names by Monday. Give Rolograph whatever you already have — a screenshot of the guest list, the event page, an InMail — and it hands back the brief.
             </p>
 
             <div className="hero-line mt-6 flex flex-wrap gap-3">
@@ -746,7 +771,7 @@ export default function Home() {
               </button>
               <a className="ghost-button" href="#join-build">
                 <UserPlus size={18} />
-                Open Roles
+                Get One
               </a>
             </div>
           </div>
@@ -1076,6 +1101,32 @@ export default function Home() {
         </aside>
       </div>
 
+      <section className="px-4 pb-6" aria-label="How Rolograph works">
+        <div className="chrome-panel mx-auto max-w-[1440px] p-5 md:p-7">
+          <div className="mb-3 inline-flex items-center gap-2 border border-cyanpop/40 bg-cyanpop/10 px-3 py-2 text-xs font-black uppercase text-cyanpop">
+            <BrainCircuit size={15} />
+            How it works
+          </div>
+          <h2 className="recruit-title max-w-4xl">
+            Put messy input in. Get a <em>researched brief</em> back.
+          </h2>
+
+          <div className="mt-6 grid gap-3 md:grid-cols-3">
+            {howItWorks.map((item) => (
+              <div className="role-tile p-4" key={item.step}>
+                <div className="font-mono text-xs uppercase text-white/45">{item.step}</div>
+                <div className="mt-1 text-sm font-black uppercase text-acid">{item.title}</div>
+                <p className="mt-2 text-sm leading-6 text-white/64">{item.detail}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-6 max-w-3xl text-base leading-7 text-white/80">
+            Like a personal assistant who actually did the research before you walked in.
+          </p>
+        </div>
+      </section>
+
       <section className="event-clock" aria-label="Cursor Miami Ship Night schedule">
         <div className="event-clock-heading">
           <CalendarClock size={19} />
@@ -1097,31 +1148,17 @@ export default function Home() {
           <div>
             <div className="mb-3 inline-flex items-center gap-2 border border-hotpink/40 bg-hotpink/10 px-3 py-2 text-xs font-black uppercase text-hotpink">
               <Sparkles size={15} />
-              Open Roles
+              Front door
             </div>
             <h2 className="recruit-title max-w-4xl">
-              Help build the <em>next version.</em>
+              Tell me what you&apos;re <em>walking into.</em>
             </h2>
             <p className="mt-5 max-w-3xl text-base leading-7 text-white/70">
-              Tonight&apos;s build is one room. The product underneath it is event intelligence that knows who matters, why they matter, what happened, and what to do next. These are the lanes where it needs real engineering.
+              This one was built for tonight. Earlier ones covered a two-event night in Wynwood, a room of 120 people, and a recruiter screen. Every Rolograph starts the same way: someone says where they are going and what they want out of it.
             </p>
-
-            <div className="mt-6 grid gap-3 md:grid-cols-2">
-              {roles.map((role) => (
-                <div className="role-tile p-4" key={role.title}>
-                  <div className="text-sm font-black uppercase text-acid">{role.title}</div>
-                  <p className="mt-2 text-sm leading-6 text-white/64">{role.detail}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-2">
-              {buildStack.map((item) => (
-                <span className="border border-cyanpop/30 bg-cyanpop/10 px-3 py-1.5 font-mono text-xs uppercase text-cyanpop" key={item}>
-                  {item}
-                </span>
-              ))}
-            </div>
+            <p className="mt-4 max-w-3xl text-sm leading-6 text-white/58">
+              You do not need clean data or an integration. A screenshot of the guest list and the name of the company is enough to start.
+            </p>
           </div>
 
           <form
@@ -1140,8 +1177,8 @@ export default function Home() {
             <input type="hidden" name="signal" value="Cursor Miami Ship Night" />
 
             <div className="mb-4">
-              <div className="font-mono text-xs uppercase text-white/54">Interest Capture</div>
-              <h3 className="form-title mt-1">Want to work on this?</h3>
+              <div className="font-mono text-xs uppercase text-white/54">Request a Rolograph</div>
+              <h3 className="form-title mt-1">Get one for your next encounter.</h3>
             </div>
 
             <label className="mb-3 block text-xs font-black uppercase text-white/62" htmlFor="name">
@@ -1150,45 +1187,75 @@ export default function Home() {
             <input className="field-input mb-4" id="name" name="name" placeholder="Your name" required />
 
             <label className="mb-3 block text-xs font-black uppercase text-white/62" htmlFor="email">
-              Email or best contact
+              Email
             </label>
             <input className="field-input mb-4" id="email" name="email" placeholder="you@wherever.dev" required />
 
             <label className="mb-3 block text-xs font-black uppercase text-white/62" htmlFor="role">
-              Build lane
+              The next event or meeting you&apos;re walking into
             </label>
-            <select className="field-input mb-4" id="role" name="role" defaultValue="AI Product Engineer">
-              <option>AI Product Engineer</option>
-              <option>Graph Systems Builder</option>
-              <option>Motion / UI Killer</option>
-              <option>Event Operator</option>
-              <option>Tell me where I fit</option>
-            </select>
+            <input
+              className="field-input mb-4"
+              id="role"
+              name="role"
+              placeholder="Interview at Frontdoor, Tuesday. Or: AI Collective meetup, next Thursday."
+              required
+            />
 
             <label className="mb-3 block text-xs font-black uppercase text-white/62" htmlFor="message">
-              Signal
+              What you&apos;re trying to get out of it
             </label>
             <textarea
               className="field-input mb-4 min-h-28 resize-y"
               id="message"
               name="message"
-              defaultValue="I saw the Cursor Miami Rolograph demo and want to help build the next version."
+              placeholder="A senior engineering role. Or: three people worth staying in touch with. Or: honest feedback on what I'm building."
             />
 
             <button className="neon-button w-full" disabled={joinStatus === "sending"} type="submit">
               <Mail size={18} />
-              {joinStatus === "sending" ? "Sending" : "Send Join Signal"}
+              {joinStatus === "sending" ? "Sending" : "Request Rolograph"}
             </button>
 
             <div className="mt-4 border border-white/15 bg-white/[0.05] p-3 text-sm leading-6 text-white/68">
-              {joinStatus === "captured" && "Captured. The signal is stored and will get a reply."}
-              {joinStatus === "local" && "Signal staged locally. If Netlify Forms is not active yet, open an issue on the repo instead."}
+              {joinStatus === "captured" && "Got it. Send whatever you have — screenshots, a link, a forwarded email — and you'll get the brief back."}
+              {joinStatus === "local" && "Staged locally. If Netlify Forms is not active yet, open an issue on the repo instead."}
               {joinStatus === "idle" && "Recorded through Netlify Forms, no backend and no account required."}
               <a className="mt-3 inline-flex items-center gap-2 font-black uppercase text-acid" href="https://github.com/melroser/rolographs" rel="noreferrer" target="_blank">
                 Open repo <ArrowRight size={15} />
               </a>
             </div>
           </form>
+        </div>
+
+        <div className="chrome-panel mx-auto mt-6 max-w-[1440px] p-5 md:p-7">
+          <div className="mb-3 inline-flex items-center gap-2 border border-acid/40 bg-acid/10 px-3 py-2 text-xs font-black uppercase text-acid">
+            <UserPlus size={15} />
+            Open roles
+          </div>
+          <h2 className="recruit-title max-w-4xl">
+            Who&apos;s needed to <em>build it.</em>
+          </h2>
+          <p className="mt-5 max-w-3xl text-base leading-7 text-white/70">
+            Tonight is one room generated by hand. Making it generate itself from a calendar, an inbox, and a pile of screenshots is the actual engineering.
+          </p>
+
+          <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {roles.map((role) => (
+              <div className="role-tile p-4" key={role.title}>
+                <div className="text-sm font-black uppercase text-acid">{role.title}</div>
+                <p className="mt-2 text-sm leading-6 text-white/64">{role.detail}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            {buildStack.map((item) => (
+              <span className="border border-cyanpop/30 bg-cyanpop/10 px-3 py-1.5 font-mono text-xs uppercase text-cyanpop" key={item}>
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
     </main>

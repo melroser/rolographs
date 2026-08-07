@@ -41,12 +41,15 @@ Built in Cursor throughout. `.cursorrules` documents the rules the agent worked 
 
 ## What's next
 
-- **Persistence** — captured interactions currently live in React state and reset on refresh. Local-first storage, then sync.
-- **Real capture fields** — full note, person, timestamp, and follow-up date per interaction, with the follow-up queue derived from them.
-- **Computed priority** — priority is currently authored. It should fall out of edge weight, recency, unmet-but-high-value status, and captured signal.
-- **Entity resolution** — the hard problem. Merging the same human across an attendee list, a badge scan, and a business card without inventing relationships.
-- **Import** — build a graph from any attendee list rather than hand-authored data.
-- **Multi-event** — the persistent graph across rooms is where this stops being an event tool and starts being a relationship layer.
+Two things, and they are the whole roadmap.
+
+**Rolographs that generate themselves.** Right now someone asks for one and it gets built. The real product watches your calendar and inbox and has the dossier already waiting before you think to ask. You have a Tuesday interview on your calendar and a recruiter thread in Gmail — that is enough input to build the brief unprompted. The dashboard is then an arrivals board, not a workspace: a list of encounters coming at you, each with its dossier already researched. You open it, you do not build it.
+
+Getting there means ingesting genuinely messy input, because clean input does not exist. Attendee lists are not available through an API. The real artifact is a blurry screenshot of a guest list on someone's phone, a forwarded InMail, a photo of a badge. The system has to read those and be honest about what it could not make out — which is why the evidence grading and the stated known gaps are load-bearing rather than decorative.
+
+**One graph across every encounter, so they compound.** Today each Rolograph is an island. They should share a spine: someone you met in July shows up in August already marked as known, with what you talked about still attached, instead of being re-researched from scratch as a stranger. That is what turns capture from a demo beat into the mechanism — every conversation you record makes the next room cheaper to walk into. It is also why the repo is named `rolographs`, plural. A Rolograph is the artifact for one encounter. Rolograph is the thing that makes them and remembers across them.
+
+Concretely, in order: persistence for captures (currently React state, resets on refresh), then screenshot and email ingestion, then entity resolution across encounters, then calendar-triggered generation.
 
 ## Run locally
 
