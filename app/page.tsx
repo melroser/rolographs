@@ -4,11 +4,14 @@ import { FormEvent, PointerEvent as ReactPointerEvent, useEffect, useMemo, useRe
 import gsap from "gsap";
 import {
   Activity,
+  AlertTriangle,
   ArrowRight,
   BrainCircuit,
   CalendarClock,
   CircleDotDashed,
+  Crosshair,
   ExternalLink,
+  FileSearch,
   Mail,
   MapPin,
   MousePointer2,
@@ -22,6 +25,11 @@ import {
 
 type NodeKind = "person" | "org" | "event" | "artifact" | "team";
 type Confidence = "High" | "Medium" | "Observed" | "Verified";
+
+type Evidence = {
+  claim: string;
+  source: string;
+};
 
 type GraphNode = {
   id: string;
@@ -37,6 +45,8 @@ type GraphNode = {
   opener: string;
   desiredEdge: string;
   tags: string[];
+  evidence: Evidence[];
+  gap?: string;
 };
 
 type GraphEdge = {
@@ -74,6 +84,11 @@ const nodes: GraphNode[] = [
     opener: "Open the room map and work down the priority list before the night runs out.",
     desiredEdge: "You -> Cursor Miami: builder who ships under pressure",
     tags: ["PRD lock", "9:30 submission", "3 minute demos"],
+    evidence: [
+      { claim: "Aug 6, 4:00 PM to 11:30 PM at The DOCK, 400 NW 26th St", source: "Official Luma event page" },
+      { claim: "6:30 PRD lock, 9:30 submission, 10:00 finalists, 3 minute live demos", source: "Ship Night criteria page + host blast, Aug 4" },
+      { claim: "$10,000 single-team prize", source: "Ship Night track description" },
+    ],
   },
   {
     id: "you",
@@ -90,6 +105,7 @@ const nodes: GraphNode[] = [
     opener: "Start from the highest-priority unmet node and work outward.",
     desiredEdge: "You -> the room: verified relationships instead of forgotten names",
     tags: ["operator", "capture", "follow-up"],
+    evidence: [{ claim: "Registered attendee, checked in on the platform", source: "Your Luma ticket" }],
   },
   {
     id: "ben",
@@ -106,6 +122,12 @@ const nodes: GraphNode[] = [
     opener: "What's the most interesting thing you've seen somebody attempt so far tonight?",
     desiredEdge: "You -> Ben: technical peer building with agents",
     tags: ["Cursor", "AI coding", "host"],
+    evidence: [
+      { claim: "Listed as event host", source: "Luma event page, Hosted By" },
+      { claim: "Ex-Microsoft engineer, cybersecurity and AI, startup cofounder, Cursor Ambassador leading the official Miami community", source: "Cursor Miami community bio" },
+      { claim: "Authored both attendee blasts and directs check-in and deadlines", source: "Luma blasts, Aug 4 and Aug 6" },
+    ],
+    gap: "No prior contact on record. This is a cold first conversation, not a warm one.",
   },
   {
     id: "quicknode",
@@ -122,6 +144,11 @@ const nodes: GraphNode[] = [
     opener: "Where are you seeing agents intersect with infrastructure tonight?",
     desiredEdge: "You -> QuickNode engineer: technical contact",
     tags: ["infra", "APIs", "sponsor"],
+    evidence: [
+      { claim: "Listed as host and sponsor", source: "Luma event page, Hosted By" },
+      { claim: "Described by organizers as the infrastructure builders actually run on", source: "Luma event description" },
+    ],
+    gap: "The individual QuickNode representative in the room is unidentified. Organization is confirmed; the person is not.",
   },
   {
     id: "amy",
@@ -138,6 +165,8 @@ const nodes: GraphNode[] = [
     opener: "What role are you playing in tonight's build ecosystem?",
     desiredEdge: "You -> Amy: verified host relationship after live context",
     tags: ["host", "needs enrichment", "local graph"],
+    evidence: [{ claim: "Listed as an event host", source: "Luma event page, Hosted By" }],
+    gap: "Company, title, and role in the event are all unresolved. No confident public match was found, so none was invented. Resolve this in person before recording anything.",
   },
   {
     id: "jen",
@@ -154,6 +183,11 @@ const nodes: GraphNode[] = [
     opener: "What kind of projects are you hoping people actually build with OKX tonight?",
     desiredEdge: "You -> Jen: partner-aware product conversation",
     tags: ["OKX", "BD", "partner"],
+    evidence: [
+      { claim: "Listed as an event host, described as BD @ OKX", source: "Luma event page, Hosted By" },
+      { claim: "OKX is a named event partner", source: "Luma event description" },
+    ],
+    gap: "Whether she is here for partnerships, recruiting, or developer relations is unknown. Ask before pitching.",
   },
   {
     id: "tatenda",
@@ -170,6 +204,11 @@ const nodes: GraphNode[] = [
     opener: "What should AI coding education feel like when the learner can ship on day one?",
     desiredEdge: "You -> Tatenda: education and local community bridge",
     tags: ["education", "Miami", "community"],
+    evidence: [
+      { claim: "Listed as an event host", source: "Luma event page, Hosted By" },
+      { claim: "Program Manager at Miami EdTech, working on technology, ethics, and access to computer science", source: "Miami EdTech team page, independently confirmed" },
+      { claim: "FIU engineering and computing background, active in Miami CS education", source: "Public professional profile" },
+    ],
   },
   {
     id: "lab",
@@ -186,6 +225,11 @@ const nodes: GraphNode[] = [
     opener: "Who in this building should see a relationship intelligence tool for live events?",
     desiredEdge: "You -> The LAB: recurring Miami founder access",
     tags: ["venue", "founders", "Miami"],
+    evidence: [
+      { claim: "Listed as an event host; venue is The DOCK, 400 NW 26th St", source: "Luma event page" },
+      { claim: "Self-described Miami tech hub connecting founders, engineers, operators and investors; The DOCK is its workspace for early-stage startups", source: "The LAB Miami site" },
+      { claim: "Described by the organizer as Wynwood's original tech home", source: "Luma event description" },
+    ],
   },
   {
     id: "superteam",
@@ -202,6 +246,11 @@ const nodes: GraphNode[] = [
     opener: "What would make a non-crypto relationship graph useful to Superteam builders?",
     desiredEdge: "You -> Superteam: prize-room product feedback",
     tags: ["sponsor", "prize", "builders"],
+    evidence: [
+      { claim: "Funds the $10,000 single-team prize", source: "Ship Night track description" },
+      { claim: "Accelerator for early-stage founders taking zero equity, powered by Solana", source: "Luma event description" },
+    ],
+    gap: "No named Superteam representative confirmed for tonight.",
   },
   {
     id: "okx",
@@ -218,6 +267,10 @@ const nodes: GraphNode[] = [
     opener: "How do you decide which event builders are worth follow-up after a ship night?",
     desiredEdge: "You -> OKX: sponsor analytics conversation",
     tags: ["wallet", "developer relations", "partner"],
+    evidence: [
+      { claim: "Named event partner, described as a global fintech covering crypto trading, wallet, marketplace and infrastructure", source: "Luma event description" },
+      { claim: "Connected to the room through Jen Stein", source: "Luma event page, Hosted By" },
+    ],
   },
   {
     id: "palma",
@@ -234,6 +287,10 @@ const nodes: GraphNode[] = [
     opener: "What would make this useful as the relationship layer across every room Palma runs?",
     desiredEdge: "You -> Palma Labs: repeat event intelligence pilot",
     tags: ["studio", "Miami", "partner"],
+    evidence: [
+      { claim: "Described by the organizer as \"our studio\" — puts Miami builders in one room and gives them a reason to stay", source: "Luma event description" },
+    ],
+    gap: "Not listed in the Hosted By block, so the working relationship to the event is stated but not structurally confirmed.",
   },
   {
     id: "product",
@@ -250,6 +307,10 @@ const nodes: GraphNode[] = [
     opener: "Click a node, capture a conversation, watch the graph rewrite the next move.",
     desiredEdge: "Product -> operator: the follow-up you would otherwise forget",
     tags: ["GSAP", "graph UX", "follow-ups"],
+    evidence: [
+      { claim: "Fourth Rolograph built; earlier ones covered a July 21 two-event night, a Base44 room of 120 profiles, and a Frontdoor recruiter screen", source: "Prior deployed Rolographs" },
+      { claim: "Scope locked at 6:30 PM in PRD.md and not edited since", source: "Public repo git history" },
+    ],
   },
   {
     id: "team",
@@ -266,8 +327,23 @@ const nodes: GraphNode[] = [
     opener: "Anyone who wants to work on this can leave a signal on the site.",
     desiredEdge: "Contributor -> Rolograph: commits, taste, velocity",
     tags: ["open roles", "contribute", "next version"],
+    evidence: [
+      { claim: "Roles derived from the gaps in this build: entity resolution, edge confidence, real-time graph state", source: "Known limitations in README" },
+    ],
+    gap: "Nobody is committed yet. This node is an intent, not a roster, and is scored that way.",
   },
 ];
+
+// Priority is meaningless without something to be a priority for. Every score below
+// is computed against this objective; change the objective and the ranking changes.
+const objective = {
+  statement: "Ship by 9:30 and leave with three verified relationships in the Miami builder graph.",
+  weights: [
+    { label: "Ship leverage", detail: "Does this node help a working product exist by 9:30?" },
+    { label: "Persistence", detail: "Does the relationship outlast tonight?" },
+    { label: "Technical depth", detail: "Can the conversation go past small talk?" },
+  ],
+};
 
 const edges: GraphEdge[] = [
   { id: "event-ben", source: "event", target: "ben", label: "host", weight: 5 },
@@ -302,11 +378,14 @@ const presenterSteps = [
   "Open roles on the next version",
 ];
 
+const totalSources = nodes.reduce((sum, node) => sum + node.evidence.length, 0);
+const unresolvedCount = nodes.filter((node) => node.gap).length;
+
 const metrics = [
-  { label: "Demo window", value: "75s", detail: "auto presenter mode" },
-  { label: "Hard deadline", value: "9:30", detail: "final product submission" },
-  { label: "Pitch format", value: "3m", detail: "live demo, no slides" },
-  { label: "Prize", value: "$10K", detail: "one team takes it" },
+  { label: "Nodes", value: String(nodes.length), detail: "people, orgs, event, product" },
+  { label: "Sources", value: String(totalSources), detail: "every claim is attributed" },
+  { label: "Open gaps", value: String(unresolvedCount), detail: "unknowns, stated not guessed" },
+  { label: "Hard deadline", value: "9:30", detail: "final submission tonight" },
 ];
 
 const schedule = [
@@ -815,6 +894,25 @@ export default function Home() {
             </div>
           </div>
 
+          <div className="mb-3 border border-acid/30 bg-acid/[0.07] p-3">
+            <div className="flex items-center gap-2 font-mono text-[0.62rem] uppercase text-acid">
+              <Crosshair size={13} />
+              Scored against your objective
+            </div>
+            <p className="mt-1.5 text-xs leading-5 text-white/82">{objective.statement}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {objective.weights.map((weight) => (
+                <span
+                  className="border border-white/12 bg-black/25 px-2 py-0.5 font-mono text-[0.6rem] uppercase text-white/58"
+                  key={weight.label}
+                  title={weight.detail}
+                >
+                  {weight.label}
+                </span>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="signal-tile p-3">
               <div className="font-mono text-xs uppercase text-white/50">Priority</div>
@@ -857,6 +955,34 @@ export default function Home() {
             <div className="mb-2 text-xs font-black uppercase text-white/60">Desired Edge</div>
             <p className="font-mono text-xs leading-5 text-white/74">{selected.desiredEdge}</p>
           </div>
+
+          <div className="mt-4 border border-white/15 bg-black/20 p-4">
+            <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase text-white/60">
+              <FileSearch size={14} />
+              Evidence
+              <span className="ml-auto font-mono text-[0.62rem] font-normal text-white/40">
+                {selected.evidence.length} source{selected.evidence.length === 1 ? "" : "s"}
+              </span>
+            </div>
+            <ul className="space-y-2.5">
+              {selected.evidence.map((item) => (
+                <li key={item.claim}>
+                  <p className="text-xs leading-5 text-white/76">{item.claim}</p>
+                  <p className="mt-1 font-mono text-[0.62rem] uppercase leading-4 text-white/42">{item.source}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {selected.gap ? (
+            <div className="mt-4 border border-hotpink/35 bg-hotpink/[0.08] p-4">
+              <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase text-hotpink">
+                <AlertTriangle size={14} />
+                Known gap
+              </div>
+              <p className="text-sm leading-6 text-white/76">{selected.gap}</p>
+            </div>
+          ) : null}
 
           <div className="mt-4 flex flex-wrap gap-2">
             {selected.tags.map((tag) => (
